@@ -98,11 +98,11 @@ python third_party/specdrive/scripts/bootstrap.py
   ```json
   {
     "entries": [
-      { "path": ".specdrive/.agents/skills" }
+      { "path": "third_party/specdrive/.agents/skills" }
     ]
   }
   ```
-  *The agent reads this manifest and scans `.specdrive/.agents/skills` directly. Zero files are copied or symlinked!*
+  *The agent reads this manifest and scans `third_party/specdrive/.agents/skills` directly. Zero files are copied or symlinked!*
 
 * **Include Rules in `AGENTS.md`**: In your host project's `AGENTS.md` (or `GEMINI.md`), include the SpecDrive guidelines using standard rule inclusion syntax:
   ```markdown
