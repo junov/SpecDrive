@@ -12,7 +12,7 @@ description: >-
 The `spec-verify` skill audits the alignment between the Markdown specification (`spec/`), the implementation (`src/`), and test coverage (`test/`). It is also the diagnostic entry point for triaging bug reports and diagnosing code drift.
 
 * **Spec Format Reference**: [spec-format.md](../spec-author/references/spec-format.md)
-* **Helper Script**: `python .agents/skills/spec-sync/scripts/specdrive.py <command>`
+* **Helper Script**: `python scripts/specdrive.py <command>`
 
 ---
 
@@ -21,11 +21,11 @@ The `spec-verify` skill audits the alignment between the Markdown specification 
 ### 1. Traceability Audit & Coverage Reporting
 Run:
 ```bash
-python .agents/skills/spec-sync/scripts/specdrive.py trace
+python scripts/specdrive.py trace
 ```
 Or for a specific requirement:
 ```bash
-python .agents/skills/spec-sync/scripts/specdrive.py trace --id <ID>
+python scripts/specdrive.py trace --id <ID>
 ```
 Review the generated matrix:
 - **Untested requirements**: Requirements present in `spec/` that have zero `@spec <ID>` tags in `test/`.
@@ -34,7 +34,7 @@ Review the generated matrix:
 
 To run a strict pass/fail integrity check:
 ```bash
-python .agents/skills/spec-sync/scripts/specdrive.py check
+python scripts/specdrive.py check
 ```
 
 ---
@@ -42,10 +42,10 @@ python .agents/skills/spec-sync/scripts/specdrive.py check
 ### 2. Code Drift Audit
 To detect changes made directly to code without going through the specification:
 ```bash
-python .agents/skills/spec-sync/scripts/specdrive.py status
+python scripts/specdrive.py status
 ```
 If the output lists modified or untracked files in `src/` or `test/` while a sync is NOT in progress:
-1. Examine the diff of those files vs the baseline commit (`python .agents/skills/spec-sync/scripts/specdrive.py base`).
+1. Examine the diff of those files vs the baseline commit (`python scripts/specdrive.py base`).
 2. If the code was changed to implement new behavior or fix a bug, inform the user:
    > In a spec-as-source project, behavioral changes must originate in `spec/`.
 3. Offer to help reverse-engineer or backport those changes into the relevant `spec/` markdown files (using `spec-author`), then execute `spec-sync`.

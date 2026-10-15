@@ -15,8 +15,8 @@ propose, they approve.
 
 * Canonical format: [spec-format.md](references/spec-format.md). Read it before writing spec text.
 * Review checklist: [quality-checklist.md](references/quality-checklist.md)
-* Helper script: `../spec-sync/scripts/specdrive.py`, run from the repo root as
-  `python <path-to-skills>/spec-sync/scripts/specdrive.py <command>`.
+* Helper script: `scripts/specdrive.py`, run from the repo root as
+  `python scripts/specdrive.py <command>` (or `python third_party/specdrive/scripts/specdrive.py <command>` in host projects).
 
 ## Modes
 

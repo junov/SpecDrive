@@ -1,7 +1,7 @@
 # SpecDrive spec format (canonical reference)
 
 Every SpecDrive skill depends on this format. The helper script
-(`spec-sync/scripts/specdrive.py`) parses it, so the **structural rules** below are
+(`scripts/specdrive.py`) parses it, so the **structural rules** below are
 mandatory. The **style rules** are strong guidance.
 
 ## Project layout
@@ -37,7 +37,7 @@ Extra folders under `spec/` (e.g. `spec/api/`, `spec/data/`) are fine. Every `*.
 * **Extent:** a requirement section includes everything up to the next heading of the **same or
   higher** level. Deeper sub-headings (for example `#### Acceptance`) belong to it.
 * **Permanence:** IDs are never renumbered or reused. Every ID that ever appeared in git history is
-  retired. Get new IDs with `python <spec-sync>/scripts/specdrive.py next-id PREFIX`.
+  retired. Get new IDs with `python scripts/specdrive.py next-id PREFIX`.
 * **Identity = intent.** Rewording or tightening a requirement keeps its ID (MODIFIED). If the
   behavior changes into something different in kind, remove the old ID and add a new one.
 * A heading directly under a `## Requirements` heading that has **no ID** is flagged as an

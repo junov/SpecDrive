@@ -28,12 +28,12 @@ This project operates on the **Spec-as-Source** paradigm. In this repository, **
    Do not add features, endpoints, speculative configurations, or behavior not defined in `spec/`.
 4. **Git-Native Synchronization**:
    Synchronization baseline commits are tagged with `Spec-Sync:` Git trailers.
-   Use the Python helper script `.agents/skills/spec-sync/scripts/specdrive.py` to calculate deltas, trace requirements, verify coverage, and accept syncs:
-   - `python .agents/skills/spec-sync/scripts/specdrive.py status`: Check pending changes and code drift.
-   - `python .agents/skills/spec-sync/scripts/specdrive.py delta`: Inspect requirement-level changes vs baseline.
-   - `python .agents/skills/spec-sync/scripts/specdrive.py trace`: View the traceability matrix.
-   - `python .agents/skills/spec-sync/scripts/specdrive.py check`: Run automated validation checks.
-   - `python .agents/skills/spec-sync/scripts/specdrive.py accept -m "<msg>"`: Commit synchronized changes.
+   Use the Python helper script `scripts/specdrive.py` (or `third_party/specdrive/scripts/specdrive.py` in host projects) to calculate deltas, trace requirements, verify coverage, and accept syncs:
+   - `python scripts/specdrive.py status`: Check pending changes and code drift.
+   - `python scripts/specdrive.py delta`: Inspect requirement-level changes vs baseline.
+   - `python scripts/specdrive.py trace`: View the traceability matrix.
+   - `python scripts/specdrive.py check`: Run automated validation checks.
+   - `python scripts/specdrive.py accept -m "<msg>"`: Commit synchronized changes.
 
 ## 3. Skill Dispatch Guide
 

@@ -15,7 +15,7 @@ The `spec-sync` skill is the core execution engine of the spec-as-source process
 * **Detailed Protocol**: [sync-protocol.md](references/sync-protocol.md)
 * **Spec Format Reference**: [spec-format.md](../spec-author/references/spec-format.md)
 * **Helper Script**: `scripts/specdrive.py`, run from repository root as:
-  `python .agents/skills/spec-sync/scripts/specdrive.py <command>`
+  `python scripts/specdrive.py <command>`
 
 ---
 
@@ -24,8 +24,8 @@ The `spec-sync` skill is the core execution engine of the spec-as-source process
 ### 1. Inspect Delta & Status
 Always start by checking the current state against the last sync commit:
 ```bash
-python .agents/skills/spec-sync/scripts/specdrive.py delta
-python .agents/skills/spec-sync/scripts/specdrive.py status
+python scripts/specdrive.py delta
+python scripts/specdrive.py status
 ```
 - If there are duplicate IDs or headings missing IDs under `## Requirements`, resolve them before proceeding.
 - If no baseline exists, this is **initial generation** (all requirements are `ADDED`).
@@ -56,7 +56,7 @@ Execute the project's test command as defined in `spec/architecture.md` (e.g. `p
 ### 6. Verify Traceability
 Run:
 ```bash
-python .agents/skills/spec-sync/scripts/specdrive.py check
+python scripts/specdrive.py check
 ```
 Verify that:
 - Every requirement in `spec/` has test coverage.
@@ -65,6 +65,6 @@ Verify that:
 ### 7. Accept the Sync
 Once all tests pass and traceability passes:
 ```bash
-python .agents/skills/spec-sync/scripts/specdrive.py accept -m "<Brief summary of changes>"
+python scripts/specdrive.py accept -m "<Brief summary of changes>"
 ```
 This automatically stages `spec/`, `src/`, `test/` and records a git commit with `Spec-Sync:` trailers. This commit becomes the new baseline.

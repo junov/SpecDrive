@@ -30,7 +30,7 @@ flowchart TD
 ### 1. Delta Detection
 Run:
 ```bash
-python .agents/skills/spec-sync/scripts/specdrive.py delta
+python scripts/specdrive.py delta
 ```
 Inspect the output:
 - **Baseline**: Note the last sync commit. If none exists, this is initial generation (all requirements are `ADDED`).
@@ -44,7 +44,7 @@ Inspect the output:
 ### 2. Code Drift Check
 Run:
 ```bash
-python .agents/skills/spec-sync/scripts/specdrive.py status
+python scripts/specdrive.py status
 ```
 If code drift shows files modified outside of a sync:
 - Alert the user if someone edited `src/` directly without updating `spec/`.
@@ -80,7 +80,7 @@ Update `src/`:
 ### 6. Traceability Verification
 Run:
 ```bash
-python .agents/skills/spec-sync/scripts/specdrive.py check
+python scripts/specdrive.py check
 ```
 This verifies:
 - No duplicate requirement IDs exist.
@@ -93,7 +93,7 @@ If errors are found, fix them before proceeding.
 ### 7. Commit & Advance Baseline
 Run:
 ```bash
-python .agents/skills/spec-sync/scripts/specdrive.py accept -m "<Brief description of spec changes>"
+python scripts/specdrive.py accept -m "<Brief description of spec changes>"
 ```
 This stages `spec/`, `src/`, `test/` and creates a Git commit containing structured `Spec-Sync:` trailers:
 ```git

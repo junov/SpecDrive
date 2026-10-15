@@ -149,7 +149,7 @@ Whenever you want to build a new feature or change existing behavior:
    - Write or update requirements using the [canonical syntax](#specification-syntax--conventions).
    - Use the **`spec-author`** agent skill if you want assistance turning vague product ideas, tickets, or bug reports into rigorous, testable specification text.
 2. **Review the Diff**:
-   - Run `python third_party/specdrive/.agents/skills/spec-sync/scripts/specdrive.py delta` to see how the tooling interprets your changes compared to the last sync baseline.
+   - Run `python scripts/specdrive.py delta` (or `python third_party/specdrive/scripts/specdrive.py delta` in host projects) to see how the tooling interprets your changes compared to the last sync baseline.
 
 ---
 
@@ -289,18 +289,18 @@ SpecDrive equips AI agents with four specialized skills located under `.agents/s
 
 ## CLI Helper Reference (`specdrive.py`)
 
-A portable Python (3.8+ standard library) CLI tool is provided at `.agents/skills/spec-sync/scripts/specdrive.py`. It requires no third-party dependencies and interacts directly with Git.
+A portable Python (3.8+ standard library) CLI tool is provided at `scripts/specdrive.py` (or `third_party/specdrive/scripts/specdrive.py` in host projects). It requires no third-party dependencies and interacts directly with Git.
 
 | Command | Description | Example |
 |---|---|---|
-| `status` | Summarizes pending spec changes and un-synced code drift. | `python .agents/skills/spec-sync/scripts/specdrive.py status` |
-| `delta` | Displays requirement-level diffs (`ADDED`, `MODIFIED`, `REMOVED`) vs. baseline. | `python .agents/skills/spec-sync/scripts/specdrive.py delta` |
-| `trace` | Outputs the traceability matrix linking requirements to tests and code. | `python .agents/skills/spec-sync/scripts/specdrive.py trace [--id ID]` |
-| `check` | Validates integrity: fails if requirements are untested, duplicated, or missing IDs. | `python .agents/skills/spec-sync/scripts/specdrive.py check` |
-| `next-id` | Allocates the next available requirement ID for a prefix (accounting for history). | `python .agents/skills/spec-sync/scripts/specdrive.py next-id AUTH` |
-| `accept` | Stages `spec/`, `src/`, `test/` and commits with `Spec-Sync:` trailers. | `python .agents/skills/spec-sync/scripts/specdrive.py accept -m "Add lockout"` |
-| `log` | Displays the history of all specification synchronization commits. | `python .agents/skills/spec-sync/scripts/specdrive.py log` |
-| `init` | Ensures `spec/`, `src/`, and `test/` folders exist. | `python .agents/skills/spec-sync/scripts/specdrive.py init` |
+| `status` | Summarizes pending spec changes and un-synced code drift. | `python scripts/specdrive.py status` |
+| `delta` | Displays requirement-level diffs (`ADDED`, `MODIFIED`, `REMOVED`) vs. baseline. | `python scripts/specdrive.py delta` |
+| `trace` | Outputs the traceability matrix linking requirements to tests and code. | `python scripts/specdrive.py trace [--id ID]` |
+| `check` | Validates integrity: fails if requirements are untested, duplicated, or missing IDs. | `python scripts/specdrive.py check` |
+| `next-id` | Allocates the next available requirement ID for a prefix (accounting for history). | `python scripts/specdrive.py next-id AUTH` |
+| `accept` | Stages `spec/`, `src/`, `test/` and commits with `Spec-Sync:` trailers. | `python scripts/specdrive.py accept -m "Add lockout"` |
+| `log` | Displays the history of all specification synchronization commits. | `python scripts/specdrive.py log` |
+| `init` | Ensures `spec/`, `src/`, and `test/` folders exist. | `python scripts/specdrive.py init` |
 
 ---
 

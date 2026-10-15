@@ -20,7 +20,7 @@ When invoked, the skill inspects the repository and automatically operates in on
 
 * **Interview Guide (Greenfield)**: [interview-guide.md](references/interview-guide.md)
 * **Spec Format Reference**: [spec-format.md](../spec-author/references/spec-format.md)
-* **Helper Script**: `python .agents/skills/spec-sync/scripts/specdrive.py <command>`
+* **Helper Script**: `python scripts/specdrive.py <command>`
 
 ---
 
@@ -73,7 +73,7 @@ Follow [interview-guide.md](references/interview-guide.md):
 ### 2. Scaffold Core Structure & Specs
 Run directory setup:
 ```bash
-python .agents/skills/spec-sync/scripts/specdrive.py init
+python scripts/specdrive.py init
 ```
 Draft the foundational specs:
 - `spec/product.md`: Vision, personas, glossary.
@@ -93,8 +93,8 @@ Once approved:
 
 ### 5. Commit Baseline
 ```bash
-python .agents/skills/spec-sync/scripts/specdrive.py check
-python .agents/skills/spec-sync/scripts/specdrive.py accept -m "Initial product implementation: <feature>"
+python scripts/specdrive.py check
+python scripts/specdrive.py accept -m "Initial product implementation: <feature>"
 ```
 
 ---
@@ -113,7 +113,7 @@ Ensure the project conforms to the three top-level directories:
 - `src/`: Houses production code (or maps existing source root).
 - `test/`: Houses test suites (or maps existing test root).
 ```bash
-python .agents/skills/spec-sync/scripts/specdrive.py init
+python scripts/specdrive.py init
 ```
 
 ### 3. Document Architectural Truth
@@ -132,9 +132,9 @@ python .agents/skills/spec-sync/scripts/specdrive.py init
 ### 6. Verify & Establish Baseline
 Run traceability integrity check:
 ```bash
-python .agents/skills/spec-sync/scripts/specdrive.py check
+python scripts/specdrive.py check
 ```
 Commit the adoption baseline:
 ```bash
-python .agents/skills/spec-sync/scripts/specdrive.py accept -m "Adopt SpecDrive spec-as-source baseline"
+python scripts/specdrive.py accept -m "Adopt SpecDrive spec-as-source baseline"
 ```
