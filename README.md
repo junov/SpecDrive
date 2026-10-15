@@ -71,12 +71,56 @@ my-project/
 
 ### 1. Starting a New Product or Adopting SpecDrive (`spec-init`)
 
-Whenever you start a new repository or want to introduce SpecDrive to an existing codebase, trigger **`spec-init`**:
+To use SpecDrive in any new or existing host project, add SpecDrive as a Git submodule and register it with your agent's customization system:
 
-The skill automatically detects your project state:
+#### A. Add SpecDrive as a Submodule
+
+In your host repository:
+
+```bash
+git submodule add https://github.com/junov/SpecDrive.git .specdrive
+```
+
+#### B. Configure Skills & Rules (No Copying or Symlinking)
+
+Modern agent systems (Antigravity, Gemini CLI, Claude, Cursor) support **explicit path discovery** for skills and **markdown includes** for rules.
+
+You can configure them manually or via the one-line bootstrap helper:
+
+##### 1. Automated Setup (Recommended)
+Run the configuration script:
+```bash
+python .specdrive/scripts/bootstrap.py
+```
+
+##### 2. Manual Setup (What the script does)
+* **Register Skill Paths**: Create or update `.agents/skills.json` at your project root to point the agent to SpecDrive's skills directory:
+  ```json
+  {
+    "entries": [
+      { "path": ".specdrive/.agents/skills" }
+    ]
+  }
+  ```
+  *The agent reads this manifest and scans `.specdrive/.agents/skills` directly. Zero files are copied or symlinked!*
+
+* **Include Rules in `AGENTS.md`**: In your host project's `AGENTS.md` (or `GEMINI.md`), include the SpecDrive guidelines using standard rule inclusion syntax:
+  ```markdown
+  @[SpecDrive Guidelines](.specdrive/AGENTS.md)
+  ```
+  *The agent automatically inlines and applies the SpecDrive rules while leaving your other project instructions intact.*
+
+---
+
+#### C. Run `spec-init`
+
+Now open your AI coding assistant in the host project and prompt:
+> *"Run spec-init to set up this project."*
+
+The skill automatically detects your project state and executes the appropriate mode:
 
 * **Mode A: Greenfield (Building a New Product from Scratch)**
-  The agent walks you through a structured discovery interview:
+  If the repository is empty, the agent walks you through a structured discovery interview:
   1. **Vision & Target Users**: Identifies the primary actor, core problem, and project name.
   2. **The Walking Skeleton (Minimal Initial Slice)**: Isolates the *single thinnest vertical slice* delivering end-to-end value on Day 1, while moving secondary ideas to `## Out of scope`.
   3. **Tech Stack & Architecture**: Confirms language, web/CLI framework, database, and test runner (with sensible defaults).
@@ -87,7 +131,7 @@ The skill automatically detects your project state:
      ```
 
 * **Mode B: Brownfield (Adopting SpecDrive in an Existing Codebase)**
-  The agent inspects your existing codebase, build configs, and test suites:
+  If existing code and manifests are detected, the agent inspects your codebase:
   1. Scaffolds `spec/`, `spec/features/`, `src/`, and `test/` layouts.
   2. Documents existing technology and test commands in `spec/architecture.md` and system context in `spec/product.md`.
   3. Reverse-engineers initial capability specifications in `spec/features/*.md` matching current test cases.
