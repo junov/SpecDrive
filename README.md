@@ -41,7 +41,7 @@ flowchart LR
 - **Spec is Primary**: Requirements and behavioral contracts live in version-controlled Markdown.
 - **Code is Derived**: AI agents generate and update `src/` and `test/` based on changes to `spec/`.
 - **Incremental Deltas**: Agents react to *diffs* in requirement sections (`ADDED`, `MODIFIED`, `REMOVED`), rather than rewriting entire projects from scratch.
-- **Git-Native Traceability**: Sync baselines are tracked using Git commit trailers (`Spec-Sync:`), eliminating proprietary databases or vendor lock-in.
+- **Git-Native Traceability**: Sync baselines are tracked using Git commit trailers (`Spec-Sync:`).
 
 ---
 
@@ -78,7 +78,7 @@ To use SpecDrive in any new or existing host project, add SpecDrive as a Git sub
 In your host repository:
 
 ```bash
-git submodule add https://github.com/junov/SpecDrive.git .specdrive
+git submodule add https://github.com/junov/SpecDrive.git third_party/specdrive
 ```
 
 #### B. Configure Skills & Rules (No Copying or Symlinking)
@@ -90,7 +90,7 @@ You can configure them manually or via the one-line bootstrap helper:
 ##### 1. Automated Setup (Recommended)
 Run the configuration script:
 ```bash
-python .specdrive/scripts/bootstrap.py
+python third_party/specdrive/scripts/bootstrap.py
 ```
 
 ##### 2. Manual Setup (What the script does)
@@ -106,7 +106,7 @@ python .specdrive/scripts/bootstrap.py
 
 * **Include Rules in `AGENTS.md`**: In your host project's `AGENTS.md` (or `GEMINI.md`), include the SpecDrive guidelines using standard rule inclusion syntax:
   ```markdown
-  @[SpecDrive Guidelines](.specdrive/AGENTS.md)
+  @[SpecDrive Guidelines](third_party/specdrive/AGENTS.md)
   ```
   *The agent automatically inlines and applies the SpecDrive rules while leaving your other project instructions intact.*
 
@@ -149,7 +149,7 @@ Whenever you want to build a new feature or change existing behavior:
    - Write or update requirements using the [canonical syntax](#specification-syntax--conventions).
    - Use the **`spec-author`** agent skill if you want assistance turning vague product ideas, tickets, or bug reports into rigorous, testable specification text.
 2. **Review the Diff**:
-   - Run `python .agents/skills/spec-sync/scripts/specdrive.py delta` to see how the tooling interprets your changes compared to the last sync baseline.
+   - Run `python third_party/specdrive/.agents/skills/spec-sync/scripts/specdrive.py delta` to see how the tooling interprets your changes compared to the last sync baseline.
 
 ---
 
