@@ -35,10 +35,9 @@ This project operates on the **Spec-as-Source** paradigm. In this repository, **
    - `python .agents/skills/spec-sync/scripts/specdrive.py check`: Run automated validation checks.
    - `python .agents/skills/spec-sync/scripts/specdrive.py accept -m "<msg>"`: Commit synchronized changes.
 
----
+## 3. Skill Dispatch Guide
 
-- **`spec-new`**: Use when starting a new software product from scratch. Conducts a guided discovery interview, scopes the walking skeleton (MVP), scaffolds specs, implements the initial slice, runs tests, and creates the initial baseline.
+- **`spec-init`**: Use when bootstrapping a project into SpecDrive—either creating a brand-new software product from scratch (conducting a discovery interview, scoping the walking skeleton, and synthesizing initial code/tests) or adopting SpecDrive in an existing codebase.
 - **`spec-author`**: Use when drafting, editing, or refining Markdown requirements, or converting ideas into specs. (Produces spec edits only; never touches `src/` or `test/`).
 - **`spec-sync`**: Use when the user has edited `spec/` and wants the changes transformed into code and tests.
 - **`spec-verify`**: Use when auditing test coverage, checking for code drift, or triaging whether a bug is a spec bug vs an implementation bug.
-- **`spec-init`**: Use when scaffolding folder layout or converting an existing codebase to SpecDrive.

@@ -11,7 +11,7 @@ Instead of writing syntax-level code line-by-line or relying on unstructured "vi
 1. [Core Philosophy & Architecture](#core-philosophy--architecture)
 2. [Project Directory Layout](#project-directory-layout)
 3. [The Developer Workflow](#the-developer-workflow)
-   - [1. Starting a New Product from Scratch (`spec-new`)](#1-starting-a-new-product-from-scratch-spec-new)
+   - [1. Starting a New Product or Adopting SpecDrive (`spec-init`)](#1-starting-a-new-product-or-adopting-specdrive-spec-init)
    - [2. Spec Authoring & Iteration (`spec-author`)](#2-spec-authoring--iteration-spec-author)
    - [3. Incremental Synchronization (`spec-sync`)](#3-incremental-synchronization-spec-sync)
    - [4. Verification & Bug Triage (`spec-verify`)](#4-verification--bug-triage-spec-verify)
@@ -69,24 +69,30 @@ my-project/
 
 ## The Developer Workflow
 
-### 1. Starting a New Product from Scratch (`spec-new`)
+### 1. Starting a New Product or Adopting SpecDrive (`spec-init`)
 
-When beginning a new product from an idea or empty repository, invoke the **`spec-new`** skill:
+Whenever you start a new repository or want to introduce SpecDrive to an existing codebase, trigger **`spec-init`**:
 
-> *"I want to build a new software product from scratch: a CLI tool to manage markdown notes and tag them."*
+The skill automatically detects your project state:
 
-The agent conducts a fast, phased discovery interview:
-1. **Vision & Target Users**: Identifies the primary persona, the core pain point being addressed, and the project name.
-2. **The Walking Skeleton (Initial Slice)**: Isolates the *single thinnest vertical slice* that delivers end-to-end value on Day 1 (e.g. creating a note file and listing notes), while explicitly deferring secondary features (e.g. search, cloud sync, encryption) to `## Out of scope`.
-3. **Tech Stack & Architecture**: Confirms runtime language, web/CLI framework, persistence layer, and test runner (offering sensible defaults).
-4. **Drafts Foundational Specifications**: Generates:
-   - `spec/product.md` (vision, personas, domain glossary)
-   - `spec/architecture.md` (tech stack, layout conventions, test commands)
-   - `spec/features/<core-feature>.md` (first 2–4 EARS requirements with Given/When/Then acceptance criteria)
-5. **Initial Implementation & Baseline**: Once you approve the draft, the agent generates matching tests in `test/`, minimal working code in `src/`, verifies that all tests pass, and creates the initial Git baseline commit:
-   ```git
-   spec-sync: Initial product implementation: note management
-   ```
+* **Mode A: Greenfield (Building a New Product from Scratch)**
+  The agent walks you through a structured discovery interview:
+  1. **Vision & Target Users**: Identifies the primary actor, core problem, and project name.
+  2. **The Walking Skeleton (Minimal Initial Slice)**: Isolates the *single thinnest vertical slice* delivering end-to-end value on Day 1, while moving secondary ideas to `## Out of scope`.
+  3. **Tech Stack & Architecture**: Confirms language, web/CLI framework, database, and test runner (with sensible defaults).
+  4. **Drafts Foundational Specifications**: Scaffolds `spec/product.md`, `spec/architecture.md`, and `spec/features/<core-feature>.md` (with concrete EARS requirements and Given/When/Then acceptance criteria).
+  5. **Synthesizes Initial Code & Baseline**: Once you approve the draft, the agent generates initial tests in `test/`, minimal working code in `src/`, ensures all tests pass, and commits the initial Git baseline:
+     ```git
+     spec-sync: Initial product implementation: note management
+     ```
+
+* **Mode B: Brownfield (Adopting SpecDrive in an Existing Codebase)**
+  The agent inspects your existing codebase, build configs, and test suites:
+  1. Scaffolds `spec/`, `spec/features/`, `src/`, and `test/` layouts.
+  2. Documents existing technology and test commands in `spec/architecture.md` and system context in `spec/product.md`.
+  3. Reverse-engineers initial capability specifications in `spec/features/*.md` matching current test cases.
+  4. Injects `@spec <ID>` traceability tags into existing tests and implementation.
+  5. Commits the initial adoption baseline (`spec-sync: Adopt SpecDrive spec-as-source baseline`).
 
 ---
 
@@ -226,15 +232,14 @@ The CLI tool checks that every requirement in `spec/` is verified by at least on
 
 ## Agent Skills Suite
 
-SpecDrive equips AI agents with five specialized skills located under `.agents/skills/`:
+SpecDrive equips AI agents with four specialized skills located under `.agents/skills/`:
 
 | Skill | Description | Primary Use Case |
 |---|---|---|
-| **`spec-new`** | Guides product discovery and builds the initial minimal product (MVP) from scratch. | Starting a new product idea, defining the walking skeleton, scaffolding initial specs, and synthesizing initial code and tests. |
+| **`spec-init`** | Bootstraps a project into the SpecDrive methodology. | Starting a new product from scratch (interview, walking skeleton, initial specs, tests, and code) *or* adopting SpecDrive in an existing codebase. |
 | **`spec-author`** | Guides specification authoring, formatting, and quality checks without modifying source code. | Drafting new features, refining acceptance criteria, formatting EARS statements, linting spec diffs. |
 | **`spec-sync`** | The incremental compilation engine that translates spec deltas into code and tests. | Synchronizing edits from `spec/` into `src/` and `test/`, executing tests, advancing git baseline. |
 | **`spec-verify`** | Audits traceability, detects unauthorized code drift, and triages defects. | Running traceability audits, diagnosing whether a bug is a spec flaw vs. code defect. |
-| **`spec-init`** | Bootstraps project structure and foundational baseline. | Initializing folder layout or converting an existing legacy repository to the `spec/`, `src/`, `test/` layout. |
 
 ---
 

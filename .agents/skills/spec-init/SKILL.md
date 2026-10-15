@@ -1,75 +1,140 @@
 ---
 name: spec-init
 description: >-
-  Scaffolds a new project or bootstraps an existing codebase into a SpecDrive
-  spec-as-source architecture (spec/, src/, test/). Use when the user asks to
-  initialize a new spec-driven project, set up the spec/src/test directory layout,
-  or bootstrap specifications for an existing project.
+  Bootstraps a project into the SpecDrive spec-as-source methodology.
+  For greenfield projects: conducts a guided discovery interview, scopes the walking
+  skeleton (MVP), drafts initial specifications, implements minimal code/tests, and
+  creates the initial baseline.
+  For brownfield/existing projects: inspects the codebase, scaffolds spec/ layout,
+  documents architecture, reverse-engineers initial feature specs, tags tests with
+  @spec, and creates the adoption baseline.
 ---
 
 # Spec-Init
 
-The `spec-init` skill sets up the foundation for a spec-as-source project. It initializes the folder structure, configures the baseline specifications, ensures Git is properly set up, and records the initial synchronization baseline.
+The `spec-init` skill is the single front door for onboarding any project into the SpecDrive **Spec-as-Source** paradigm.
 
+When invoked, the skill inspects the repository and automatically operates in one of two modes:
+* **Mode A: Greenfield Project (From Scratch)**: Conducts a discovery interview to scope a minimal initial product (the walking skeleton), drafts the foundational specifications, implements the working code and tests, and commits the initial baseline.
+* **Mode B: Brownfield Project (Existing Codebase)**: Inspects the existing code, tech stack, and test suite, creates `spec/product.md` and `spec/architecture.md`, reverse-engineers initial capability specifications in `spec/features/`, tags existing tests with `@spec <ID>`, and commits the adoption baseline.
+
+* **Interview Guide (Greenfield)**: [interview-guide.md](references/interview-guide.md)
 * **Spec Format Reference**: [spec-format.md](../spec-author/references/spec-format.md)
 * **Helper Script**: `python .agents/skills/spec-sync/scripts/specdrive.py <command>`
 
 ---
 
-## Initialization Workflows
+## Mode Detection
 
-### Mode A: Greenfield Project Setup
-
-When starting a project from scratch:
-
-1. **Verify or Initialize Git**:
+Upon activation, check the working directory:
+1. Ensure Git is initialized:
    ```bash
-   git status
-   # If not a repo:
-   git init
+   git status || git init
    ```
-2. **Create Core Folders**:
-   ```bash
-   python .agents/skills/spec-sync/scripts/specdrive.py init
-   ```
-   This ensures `spec/`, `src/`, and `test/` directories exist, and creates `spec/features/`.
-
-3. **Scaffold Foundational Specs**:
-   Create standard context files in `spec/`:
-   - `spec/product.md`: High-level vision, target users, problem statement, core capabilities, and domain glossary.
-   - `spec/architecture.md`: Language, runtime, framework choices, directory layout within `src/` and `test/`, coding style, and explicit commands for building, running, and testing.
-
-4. **Draft the First Capability**:
-   Create `spec/features/<feature-name>.md` with a chosen uppercase prefix (e.g. `CORE`, `AUTH`, `API`), containing the first set of functional requirements formatted with EARS patterns and Given/When/Then acceptance criteria.
-   Use `python .agents/skills/spec-sync/scripts/specdrive.py next-id <PREFIX>` to allocate IDs.
-
-5. **Initial Baseline Commit**:
-   Commit the initial spec structure as the foundational baseline:
-   ```bash
-   git add spec
-   python .agents/skills/spec-sync/scripts/specdrive.py accept -m "Initial specification baseline"
-   ```
+2. Determine repository state:
+   - If the workspace has no existing source code files (or only empty scaffolding): **Execute Mode A (Greenfield)**.
+   - If the workspace already contains existing application source code, package manifests (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`), or tests: **Execute Mode B (Brownfield)**.
 
 ---
 
-### Mode B: Brownfield / Existing Codebase Bootstrapping
+## Mode A: Greenfield Product Discovery (From Scratch)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant Agent as Agent (spec-init)
+    participant Spec as spec/
+    participant Code as src/ & test/
+    participant Git as Git Baseline
+
+    User->>Agent: "I want to build a new product..."
+    Agent->>User: Phase 1: Problem & Target User questions
+    User->>Agent: Answers & context
+    Agent->>User: Phase 2: Walking skeleton & Scope limits
+    User->>Agent: Selects minimal Day 1 slice
+    Agent->>User: Phase 3: Tech stack & conventions
+    User->>Agent: Confirms stack choices
+    Agent->>Spec: Scaffolds product.md, architecture.md, features/core.md
+    Agent->>User: Presents draft for confirmation
+    User->>Agent: "Looks good, proceed"
+    Agent->>Code: Generates initial tests and minimal code
+    Agent->>Agent: Runs test suite (must pass 100%)
+    Agent->>Git: Commits initial baseline (specdrive.py accept)
+    Agent->>User: Product initialized and ready for iteration!
+```
+
+### 1. Discovery Interview
+Follow [interview-guide.md](references/interview-guide.md):
+- **Batch questions**: 2–3 questions per turn with recommended defaults.
+- **Scope down**: Find the single, thinnest vertical slice (walking skeleton) that connects all layers end-to-end. Defer everything else to `## Out of scope`.
+- **Confirm architecture**: Confirm runtime language, framework, database, and test harness.
+
+### 2. Scaffold Core Structure & Specs
+Run directory setup:
+```bash
+python .agents/skills/spec-sync/scripts/specdrive.py init
+```
+Draft the foundational specs:
+- `spec/product.md`: Vision, personas, glossary.
+- `spec/architecture.md`: Stack, layout conventions, build/test commands.
+- `spec/features/<core-feature>.md`: First 2–4 EARS requirements with Given/When/Then acceptance criteria.
+
+### 3. User Approval Gate
+Present a summary of the drafted specifications to the user:
+> *"Here is the specification for the initial walking skeleton. Does this capture the scope you want for Day 1?"*
+
+### 4. Synthesize Walking Skeleton
+Once approved:
+1. Create project config files (e.g. `pyproject.toml`, `package.json`, `Cargo.toml`).
+2. Generate tests in `test/` verifying each acceptance criterion, tagged with `# @spec <ID>`.
+3. Generate minimal implementation in `src/` to satisfy tests, tagged with `# @spec <ID>`.
+4. Run tests using the project's runner (must pass 100%).
+
+### 5. Commit Baseline
+```bash
+python .agents/skills/spec-sync/scripts/specdrive.py check
+python .agents/skills/spec-sync/scripts/specdrive.py accept -m "Initial product implementation: <feature>"
+```
+
+---
+
+## Mode B: Brownfield Adoption (Existing Codebase)
 
 When introducing SpecDrive to an existing codebase:
 
-1. **Inspect Existing Project**:
-   - Detect language, framework, dependencies (e.g. `package.json`, `pyproject.toml`, `Cargo.toml`).
-   - Identify existing test runners and entry points.
-2. **Reorganize or Symlink to Canonical Layout**:
-   - Ensure `src/` houses implementation and `test/` houses tests.
-   - Create `spec/` and `spec/features/`.
-3. **Generate `spec/architecture.md`**:
-   - Document the current tech stack, directory conventions, and exact test execution commands.
-4. **Draft Reverse-Engineered Feature Specs**:
-   - Group existing capabilities into feature specs in `spec/features/*.md`.
-   - Assign requirement IDs (`AUTH-001`, `DATA-001`, etc.) to distinct behaviors verified by existing tests.
-   - Annotate existing tests with `# @spec <ID>` (or language comment equivalent).
-5. **Establish Baseline**:
-   Run `specdrive.py check` to verify initial traceability, then:
-   ```bash
-   python .agents/skills/spec-sync/scripts/specdrive.py accept -m "Adopt SpecDrive spec-as-source baseline"
-   ```
+### 1. Stack & Architecture Inspection
+- Inspect dependencies, build configs, and test setups.
+- Identify the canonical test runner and execution command.
+
+### 2. Layout Alignment
+Ensure the project conforms to the three top-level directories:
+- `spec/`: Created if absent.
+- `src/`: Houses production code (or maps existing source root).
+- `test/`: Houses test suites (or maps existing test root).
+```bash
+python .agents/skills/spec-sync/scripts/specdrive.py init
+```
+
+### 3. Document Architectural Truth
+- Generate `spec/architecture.md`: Record existing runtime, framework versions, directory structure, coding idioms, and exact test commands.
+- Generate `spec/product.md`: Document current system purpose and core domain concepts.
+
+### 4. Reverse-Engineer Initial Feature Specs
+- Group existing capabilities into feature specs in `spec/features/*.md`.
+- Assign permanent IDs (`CORE-001`, `AUTH-001`) to discrete behaviors verified by existing tests.
+- Format requirements with EARS syntax and Given/When/Then acceptance criteria reflecting existing behavior.
+
+### 5. Inject Traceability Tags
+- Annotate existing tests with `# @spec <ID>` (or language-appropriate comment).
+- Annotate corresponding primary classes/functions in `src/` with `# @spec <ID>`.
+
+### 6. Verify & Establish Baseline
+Run traceability integrity check:
+```bash
+python .agents/skills/spec-sync/scripts/specdrive.py check
+```
+Commit the adoption baseline:
+```bash
+python .agents/skills/spec-sync/scripts/specdrive.py accept -m "Adopt SpecDrive spec-as-source baseline"
+```

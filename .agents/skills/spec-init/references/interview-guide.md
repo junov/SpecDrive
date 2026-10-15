@@ -1,6 +1,6 @@
 # Product Discovery & Initial Scope Interview Guide
 
-This guide defines the conversational discovery process used by the `spec-new` skill to interview the user when building a new software product from scratch.
+This guide defines the conversational discovery process used by the `spec-init` skill when starting a new software product from scratch (Greenfield Mode).
 
 The goal is to move from a raw idea to a **Working Walking Skeleton (MVP)** with minimum cognitive friction.
 
