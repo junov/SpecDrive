@@ -19,8 +19,12 @@ flowchart TD
     H -- "Tests Pass" --> J["6. Verify Traceability (specdrive.py check)"]
     J -- "Missing Tags / Untested" --> K["Tag missing @spec IDs"]
     K --> J
-    J -- "Check Passed" --> L["7. Accept & Baseline (specdrive.py accept)"]
-    L --> M["Git Commit with Spec-Sync trailers"]
+    J -- "Check Passed" --> L{"7. User Review & Approval"}
+    L -- "Approved" --> M["8. Accept & Baseline (specdrive.py accept)"]
+    M --> N["Git Commit with Spec-Sync trailers"]
+    L -- "Feedback (Spec)" --> O["Handoff to spec-author"]
+    L -- "Feedback (Code)" --> E
+    L -- "Cancel" --> P["Revert uncommitted src/ & test/"]
 ```
 
 ---
@@ -90,7 +94,21 @@ This verifies:
 
 If errors are found, fix them before proceeding.
 
-### 7. Commit & Advance Baseline
+### 7. User Review & Approval
+Present a concise summary of the synthesized code, created/modified tests, and verification results to the user.
+In the case of UI changes, display before and after screenshots that illustrate the changes.
+
+> **IMPORTANT**:
+> Never show generated images or mockups instead of actual screenshots. If you don't know how to generate the correct real screenshots then don't show any.
+
+Ask the User to provide feedback, approve the changes, or cancel the sync:
+- **Approved**: Proceed to Step 8 to advance the baseline.
+- **Feedback (Spec-Level)**: If the user requests alterations that change requirements, acceptance criteria, or architectural constraints, hand off to `spec-author` to draft the spec changes first.
+- **Feedback (Implementation-Level)**: If the user requests code improvements, refactoring, or bug fixes consistent with the existing spec, return to Step 2 to revise code and tests.
+- **Cancel**: Revert uncommitted working tree modifications in `src/` and `test/` (e.g., `git restore src/ test/` and remove untracked generated files) to return cleanly to the previous baseline state.
+
+### 8. Commit & Advance Baseline
+Once all tests pass, traceability passes, and the user has approved the sync:
 Run:
 ```bash
 python scripts/specdrive.py accept -m "<Brief description of spec changes>"

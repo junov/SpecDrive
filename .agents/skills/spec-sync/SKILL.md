@@ -62,8 +62,23 @@ Verify that:
 - Every requirement in `spec/` has test coverage.
 - No orphan `@spec <ID>` tags exist in `src/` or `test/`.
 
-### 7. Accept the Sync
-Once all tests pass and traceability passes:
+### 7. Get User Approval
+Present a concise summary of the synthesized code, created/modified tests, and test runner results. 
+In the case of UI changes, display before and after screenshots that illustrate the changes.
+
+> **IMPORTANT**:
+> Never show generated images or mockups instead of actual screenshots. If you don't know how to generate the correct real screenshots then don't show any. 
+
+Ask the User to provide feedback, approve the changes, or cancel the sync:
+- **If approved**: Proceed to Step 8.
+- **If the user provides feedback**:
+  - Determine whether the feedback justifies a modification to the spec.
+  - If spec changes are required, hand off to the `spec-author` skill and inform the user to re-invoke `spec-sync` after approving the updated spec.
+  - Otherwise (no spec modification required), return to Step 2 and iterate on the implementation/tests taking the user's feedback into account.
+- **If the user cancels the sync**: Revert uncommitted changes in `src/` and `test/` (e.g., `git restore src/ test/` and remove untracked generated files) to return to a clean baseline state.
+
+### 8. Accept the Sync
+Once all tests pass, traceability passes, and user has approved:
 ```bash
 python scripts/specdrive.py accept -m "<Brief summary of changes>"
 ```
