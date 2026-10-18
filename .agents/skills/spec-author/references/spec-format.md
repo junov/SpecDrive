@@ -121,12 +121,22 @@ bullet becomes at least one test, and nothing untestable belongs in them.
 * Items under `## Open questions` or `## Out of scope` are **never implemented**.
 * Keep files focused. Split a feature file once it holds more than about 25 requirements.
 
-## Traceability tags (in src/ and test/)
+## Traceability tags (in src/ and test/) and linked issues
 
 * Every test that verifies a requirement carries `@spec <ID>` in a comment, docstring, or test
   name, for example `// @spec AUTH-002` or `def test_lockout():  # @spec AUTH-002`.
   Several IDs: `@spec AUTH-001, AUTH-002`.
 * The main implementing unit (function, class, handler, or component) carries a
   `@spec <ID>` comment. Shared infrastructure doesn't need tags.
+* When a requirement or change is linked to an issue (e.g., `#42`), reference the issue in the
+  requirement's `Notes:` section in `spec/` and alongside the `@spec <ID>` tag or docstring in
+  `src/` and `test/` where appropriate (for example, `// @spec AUTH-002 (Issue #42)`).
+* When follow-up work is tracked in an open issue, `TODO` comments referencing that open issue
+  may be placed in `spec/`, `src/`, and `test/` (for example, `// TODO(#45): ...` or
+  `<!-- TODO(#45): ... -->`). Once the referenced issue is fixed or closed, the `TODO` comment
+  must be removed (it is okay to reference fixed or closed issues in normal comments, just not
+  in `TODO` comments).
 * `specdrive.py check` fails on untested requirements and on tags whose ID isn't in the spec
   (orphans).
+
+

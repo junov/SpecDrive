@@ -4,8 +4,9 @@ description: >-
   Synchronizes incremental Markdown specification edits into source code and tests.
   Use when the user has edited files under spec/ and wants to update the implementation,
   generate new code/tests, reconcile code with the spec, or accept a spec change.
-  Computes the spec delta against the git baseline, updates test/ and src/, runs validation,
-  and commits the synchronization.
+  Computes the spec delta against the git baseline, updates test/ and src/, proposes
+  follow-up issues (with user confirmation) and open-issue TODOs when appropriate,
+  validates traceability and TODO hygiene, and commits the synchronization.
 ---
 
 # Spec-Sync
@@ -31,29 +32,42 @@ python scripts/specdrive.py status
 - If no baseline exists, this is **initial generation** (all requirements are `ADDED`).
 - If code drift exists in `src/` or `test/` from edits outside a sync, review those changes so intentional modifications are preserved or reflected back into `spec/`.
 
-### 2. Plan the Incremental Updates
+### 2. Plan the Incremental Updates & Check Associated Issues
 Formulate a concise step-by-step plan:
 1. **Tests to add/update/delete** in `test/` (keyed by requirement ID).
 2. **Components/modules to touch** in `src/`.
 3. Check `spec/architecture.md` for technology stack, coding conventions, and test commands.
+4. **Associated Issue Check**:
+   - Check if the current work has an associated issue (e.g., referenced in `spec/` requirement `Notes:`, or specified by the user).
+   - If the current work does **not** have an associated issue:
+     - **Do not ask again if already decided**: If the user already instructed the `spec-author` skill to proceed with the current work without an associated issue, **do not ask the user again**.
+     - Otherwise (e.g., `spec-sync` was invoked directly on spec edits authored outside `spec-author`), propose creating one or more new issues for the current work.
+     - **Proceeding without an associated issue is always an option**: Always offer the user the choice to proceed without an associated issue.
+     - **Mandatory Confirmation Gate**: Never create an issue without explicit user confirmation.
 
 ### 3. Generate & Update Tests First (`test/`)
 For each changed requirement:
-- **`ADDED`**: Write new unit/integration tests directly derived from the requirement's `Acceptance:` criteria. Tag each test function with `# @spec <ID>` (or language-appropriate comment).
-- **`MODIFIED`**: Update existing tests tagged with `@spec <ID>` to match the revised acceptance criteria.
+- **`ADDED`**: Write new unit/integration tests directly derived from the requirement's `Acceptance:` criteria. Tag each test function with `# @spec <ID>` (or language-appropriate comment), and include any linked issue references from the spec where appropriate (e.g., `// @spec <ID> (Issue #42)`).
+- **`MODIFIED`**: Update existing tests tagged with `@spec <ID>` to match the revised acceptance criteria, preserving or adding any linked issue references.
 - **`REMOVED`**: Remove or retire tests associated with the removed ID.
+- When appropriate, add `TODO` comments referencing open follow-up issues in `test/` (e.g., `// TODO(#45): ...`).
 
-### 4. Implement Code Changes (`src/`)
+### 4. Implement Code Changes (`src/`) & Propose Follow-Up Issues
 - Update only the source files necessary to satisfy the new or modified requirements.
 - Never write extra or speculative code beyond what is specified in `spec/`.
-- Tag primary implementing functions, classes, or endpoints with `@spec <ID>`.
+- Tag primary implementing functions, classes, or endpoints with `@spec <ID>` (and any linked issue reference where appropriate).
+- **Propose Creating Follow-Up Issues (Confirmation Required)**:
+  - If synthesizing or testing the changes uncovers problems, technical debt, or possible improvements that should be addressed in follow-up work, **propose creating a new issue** (for example on GitHub via `gh issue create`).
+  - **Mandatory Confirmation Gate**: You **MUST** always ask the user for confirmation (presenting the proposed title and description) before creating a new issue.
+  - Once confirmed and created, add `TODO` comments referencing the open issue to `spec/`, `src/`, and/or `test/` where appropriate (e.g., `// TODO(#45): ...`).
+- If important technical findings were uncovered during implementation or investigation of a linked issue, ask the user for explicit permission before posting an explanatory comment to the issue.
 
 ### 5. Run Tests
 Execute the project's test command as defined in `spec/architecture.md` (e.g. `pytest`, `npm test`, `cargo test`, `go test`).
 - Ensure all tests pass with zero regressions.
 - If tests fail, fix the implementation or test. If the spec is contradictory, consult the user.
 
-### 6. Verify Traceability
+### 6. Verify Traceability & Issue `TODO` Hygiene
 Run:
 ```bash
 python scripts/specdrive.py check
@@ -61,6 +75,7 @@ python scripts/specdrive.py check
 Verify that:
 - Every requirement in `spec/` has test coverage.
 - No orphan `@spec <ID>` tags exist in `src/` or `test/`.
+- **Validate `TODO` Comments**: Inspect `TODO` comments across `spec/`, `src/`, and `test/` and verify that any `TODO` comments referencing an issue that is now fixed or closed have been removed (or converted to normal non-`TODO` comments). It is okay to reference fixed or closed issues in regular comments (e.g., `// @spec AUTH-002 (Issue #42)`), just **not** in `TODO` comments.
 
 ### 7. Get User Approval
 Present a concise summary of the synthesized code, created/modified tests, and test runner results. 
@@ -83,3 +98,13 @@ Once all tests pass, traceability passes, and user has approved:
 python scripts/specdrive.py accept -m "<Brief summary of changes>"
 ```
 This automatically stages `spec/`, `src/`, `test/` and records a git commit with `Spec-Sync:` trailers. This commit becomes the new baseline.
+
+### 9. Propose Submission (`spec-submit`)
+After the sync commit is recorded, **propose proceeding with the `spec-submit` skill to the user** (do not execute it automatically):
+- Ask the user if they would like to submit the committed changes upstream using `spec-submit`.
+- Explain what `spec-submit` will do:
+  - Push committed changes to the upstream remote.
+  - Close completely fixed issues (or annotate the Pull Request / code review with `Closes #123` so issues close automatically on merge).
+  - Update fixed issues with `"Fixed in release <version>"` whenever release tags are pushed or merged.
+- Only invoke or proceed with `spec-submit` once the user confirms.
+

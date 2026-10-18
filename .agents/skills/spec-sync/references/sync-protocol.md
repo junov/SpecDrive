@@ -22,6 +22,8 @@ flowchart TD
     J -- "Check Passed" --> L{"7. User Review & Approval"}
     L -- "Approved" --> M["8. Accept & Baseline (specdrive.py accept)"]
     M --> N["Git Commit with Spec-Sync trailers"]
+    N --> Q["9. Propose spec-submit to User"]
+    Q -- "User Confirms" --> R["Push Upstream, Close Issues & Update Release Comments"]
     L -- "Feedback (Spec)" --> O["Handoff to spec-author"]
     L -- "Feedback (Code)" --> E
     L -- "Cancel" --> P["Revert uncommitted src/ & test/"]
@@ -54,6 +56,15 @@ If code drift shows files modified outside of a sync:
 - Alert the user if someone edited `src/` directly without updating `spec/`.
 - In a spec-as-source project, intentional changes must be reflected in `spec/` first.
 
+### 2b. Associated Issue Check
+Before proceeding to implementation:
+- Check if the requirements being synchronized are associated with an issue (e.g. noted in `spec/` `Notes:` or specified by the user).
+- If the current work does **not** have an associated issue:
+  - If the user already instructed the `spec-author` skill to proceed with this work without an associated issue, **do not ask the user again**.
+  - Otherwise, propose creating one or more new issues for the current work.
+  - **Proceeding without an associated issue is always an option**: always present this choice.
+  - **Mandatory Confirmation Gate**: Never create an issue without explicit user confirmation.
+
 ### 3. Test-First Synthesis
 Before touching production code in `src/`:
 1. For every `ADDED` or `MODIFIED` requirement:
@@ -73,6 +84,7 @@ Update `src/`:
 1. Implement the minimal necessary logic to satisfy the new/modified tests.
 2. Comply strictly with `spec/architecture.md` (directory structure, language idioms, architectural patterns).
 3. Annotate major implementing functions, classes, or modules with `@spec <ID>`.
+4. If implementation uncovers problems or possible improvements that should be addressed in follow-up work, propose creating new issue(s) and **always ask the user for confirmation** before creating them. When appropriate, add `TODO` comments referencing open issues to `spec/`, `src/`, and `test/`.
 
 ### 5. Automated Validation
 1. Execute the project's native test runner (as specified in `spec/architecture.md`, e.g. `pytest`, `npm test`, `cargo test`, `go test`).
@@ -81,7 +93,7 @@ Update `src/`:
    - The test misunderstood the spec acceptance criteria $\rightarrow$ fix `test/`.
    - The spec itself is ambiguous or contradictory $\rightarrow$ pause and ask the user for clarification.
 
-### 6. Traceability Verification
+### 6. Traceability & `TODO` Verification
 Run:
 ```bash
 python scripts/specdrive.py check
@@ -91,6 +103,9 @@ This verifies:
 - No requirement headings are missing an ID.
 - Every requirement has at least one associated test (`@spec <ID>`).
 - No orphan `@spec <ID>` tags exist in code pointing to nonexistent or deleted specs.
+
+Additionally, validate `TODO` comment hygiene across `spec/`, `src/`, and `test/`:
+- Ensure any `TODO` comments referencing an issue that has been fixed or closed are removed (or converted to normal non-`TODO` issue references). It is okay to reference fixed or closed issues in regular comments, just not in `TODO` comments.
 
 If errors are found, fix them before proceeding.
 
@@ -123,3 +138,14 @@ Spec-Modified: AUTH-001
 Spec-Removed: AUTH-002
 ```
 The newly created commit automatically becomes the baseline for future spec deltas.
+
+### 9. Propose Submission to Upstream (`spec-submit`)
+After the baseline commit is recorded, **propose proceeding with the `spec-submit` skill to the user** (do not execute it automatically):
+- Ask the user if they would like to submit the committed changes upstream using `spec-submit`.
+- Explain the submission actions `spec-submit` will perform:
+  - Push the committed changes to the upstream remote.
+  - If code reviews (e.g. GitHub Pull Requests) are required, push the branch, open/update the PR, and annotate its description with platform issue closing keywords (e.g., `Closes #123`, `Fixes #456`) so that issues close automatically when the PR is merged.
+  - If pushing directly to a branch without code reviews, close all completely fixed associated issues immediately with an informative closing comment.
+  - When pushing or merging release tags, comment `"Fixed in release <version>"` on all issues fixed since the previous release tag.
+- Only invoke or proceed with `spec-submit` once the user confirms.
+

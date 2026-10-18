@@ -41,3 +41,4 @@ This project operates on the **Spec-as-Source** paradigm. In this repository, **
 - **`spec-author`**: Use when drafting, editing, or refining Markdown requirements, or converting ideas into specs. (Produces spec edits only; never touches `src/` or `test/`).
 - **`spec-sync`**: Use when the user has edited `spec/` and wants the changes transformed into code and tests.
 - **`spec-verify`**: Use when auditing test coverage, checking for code drift, or triaging whether a bug is a spec bug vs an implementation bug.
+- **`spec-submit`**: The final step of the SpecDrive process. Use when pushing committed changes to the upstream repository, closing completely fixed issues, configuring code reviews / pull requests with issue-closing annotations (e.g. 'Closes #123'), and commenting 'Fixed in release <version>' on fixed issues when release tags are pushed or merged.
