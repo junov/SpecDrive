@@ -19,6 +19,7 @@ propose, they approve.
 
 * Canonical format: [spec-format.md](references/spec-format.md). Read it before writing spec text.
 * Review checklist: [quality-checklist.md](references/quality-checklist.md)
+* Codebase design reference: [codebase-design.md](references/codebase-design.md)
 * Helper script: `scripts/specdrive.py`, run from the repo root as
   `python scripts/specdrive.py <command>` (or `python third_party/specdrive/scripts/specdrive.py <command>` in host projects).
 
@@ -63,21 +64,22 @@ Whenever `spec-author` is invoked to draft, extend, or triage a request:
 2. If the request is vague, ask **at most 3–5 focused questions** in one batch, covering actors,
    triggers, limits, error behavior, and what's out of scope. Offer a recommended default for each.
    If candidate open issues were found by the sub-agent, ask the user to confirm which issue(s) to link (if any).
-3. Write the requirements in the canonical format (EARS + Given/When/Then acceptance).
+3. Follow [codebase-design.md](references/codebase-design.md) when defining capabilities: specify deep module interfaces placed at clean seams, and use the "Design It Twice" pattern to explore alternative interface shapes with the user when designing new capabilities.
+4. Write the requirements in the canonical format (EARS + Given/When/Then acceptance).
    * New feature file: pick a short uppercase `prefix`, put it in the front matter, and use the
      feature template from spec-format.md.
    * New IDs: run `specdrive.py next-id <PREFIX>` once per requirement, and edit the file between
      calls so that each call sees the previous ID. Never invent or reuse IDs by hand.
    * Reference any confirmed linked issue(s) in the requirement's `Notes:` section where appropriate, and remove any stale `TODO` comments in `spec/` for issues addressed by this change.
-4. Run the quality checklist on what you wrote and fix your own BLOCKERs and WARNINGs.
-5. If follow-up problems or improvements were identified, propose creating new issue(s) and ask the user for confirmation before creating them; once created, add `TODO` comments referencing the open follow-up issue(s) in `spec/` where appropriate.
-6. If important findings were uncovered during investigation of a linked issue, ask the user for permission to post a summary comment to the issue.
-7. **Mandatory Spec Review Gate: Show the user the drafted text, or the diff if you edited the file, and point out the assumptions you made. Stop there.** Implementation happens only when the user explicitly reviews and commands a sync (spec-sync skill).
+5. Run the quality checklist ([quality-checklist.md](references/quality-checklist.md)) on what you wrote and fix your own BLOCKERs and WARNINGs.
+6. If follow-up problems or improvements were identified, propose creating new issue(s) and ask the user for confirmation before creating them; once created, add `TODO` comments referencing the open follow-up issue(s) in `spec/` where appropriate.
+7. If important findings were uncovered during investigation of a linked issue, ask the user for permission to post a summary comment to the issue.
+8. **Mandatory Spec Review Gate: Show the user the drafted text, or the diff if you edited the file, and point out the assumptions you made. Stop there.** Implementation happens only when the user explicitly reviews and commands a sync (spec-sync skill).
 
 ### B. Review the user's own edits (pre-sync lint)
 1. Run `specdrive.py delta` to see exactly what changed since the last sync.
-2. Apply the checklist to every ADDED or MODIFIED requirement and to the
-   "Per change" section for REMOVED and context changes.
+2. Apply the checklist ([quality-checklist.md](references/quality-checklist.md)) to every ADDED or MODIFIED requirement and to the
+   "Per change" section for REMOVED and context changes (referencing [codebase-design.md](references/codebase-design.md) for module depth, seam discipline, and the deletion test).
 3. Report findings grouped as BLOCKER / WARNING / NIT, each with a concrete replacement
    suggestion. Don't apply semantic changes without the user's approval.
 4. If the review uncovers broader problems or follow-up improvements, propose creating new issue(s) (asking the user for confirmation first) and adding corresponding `TODO` comments in `spec/`. Also flag any `TODO` comments in `spec/` that reference already-fixed or closed issues so they are removed or converted to normal non-`TODO` references.

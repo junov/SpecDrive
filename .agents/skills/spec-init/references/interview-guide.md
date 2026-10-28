@@ -1,6 +1,7 @@
 # Product Discovery & Initial Scope Interview Guide
 
 This guide defines the conversational discovery process used by the `spec-init` skill when starting a new software product from scratch (Greenfield Mode).
+For codebase design vocabulary and principles (deep modules, seams, dependency categories), refer to [codebase-design.md](../../spec-author/references/codebase-design.md).
 
 The goal is to move from a raw idea to a **Working Walking Skeleton (MVP)** with minimum cognitive friction.
 
@@ -13,7 +14,7 @@ Do not ask all questions at once. Batch them into 3–4 focused rounds of 2–3 
 ```mermaid
 flowchart TD
     P1["Phase 1: Vision & Core Problem\n(Who is it for? What pain does it solve?)"] --> P2["Phase 2: The Walking Skeleton\n(What is the single thinnest end-to-end slice?)"]
-    P2 --> P3["Phase 3: Tech Stack & Architecture\n(Language, framework, test harness, DB)"]
+    P2 --> P3["Phase 3: Architecture, Seams & Stack\n(Deep modules, dependency categories, test runner)"]
     P3 --> P4["Phase 4: Synthesis & Confirmation\n(Draft specs, approve, and build initial slice)"]
 ```
 
@@ -44,10 +45,17 @@ Ask:
 Ask:
 1. **Target Language & Framework**:
    - Provide a recommended default based on the domain (e.g., Python + Click/FastAPI, TypeScript + Node/Hono, Go, Rust).
-2. **Persistence / Storage**:
-   - Recommend the simplest viable option for the initial slice (e.g. SQLite, JSON file, in-memory, or PostgreSQL).
+2. **Persistence & External Dependencies (Categorized)**:
+   - Identify external dependencies and classify them into the 4 categories:
+     - *In-process*: Pure logic / in-memory.
+     - *Local-substitutable*: SQLite, local filesystem, or in-memory fake.
+     - *Remote but owned*: Internal services (ports & adapters).
+     - *True external*: Third-party APIs (Stripe, Twilio).
+   - Recommend the simplest viable option for the initial slice (e.g. SQLite or in-memory fake).
 3. **Testing Framework**:
    - Confirm the test runner (e.g. `pytest`, `vitest`, `cargo test`, `go test`).
+4. **Architectural Seams**:
+   - Structure around a **deep core module** (rich business logic behind a small interface) placed at a clean seam. Avoid introducing multiple shallow pass-through layers (such as controller -> service -> repository wrappers) on Day 1.
 
 ---
 
@@ -55,8 +63,8 @@ Ask:
 Before writing any code:
 1. Produce the drafted specifications:
    - `spec/product.md`
-   - `spec/architecture.md`
-   - `spec/features/<core-feature>.md` (with 2–4 concrete EARS requirements and Given/When/Then acceptance criteria).
+   - `spec/architecture.md`: Bind tech stack, test commands, deep module conventions, seam locations, and dependency categories.
+   - `spec/features/<core-feature>.md`: First 2–4 concrete EARS requirements with Given/When/Then acceptance criteria.
 2. Present a concise summary to the user:
    - *"Here is the specification for the initial walking skeleton. Does this capture the scope you want for Day 1?"*
 3. Once the user approves (or requests small tweaks), hand off directly to implementation: generate the code and tests, run the test suite, and record the initial baseline.

@@ -12,6 +12,7 @@ description: >-
 The `spec-verify` skill audits the alignment between the Markdown specification (`spec/`), the implementation (`src/`), and test coverage (`test/`). It is also the diagnostic entry point for triaging bug reports and diagnosing code drift.
 
 * **Spec Format Reference**: [spec-format.md](../spec-author/references/spec-format.md)
+* **Codebase Design Reference**: [codebase-design.md](../spec-author/references/codebase-design.md)
 * **Helper Script**: `python scripts/specdrive.py <command>`
 
 ---
@@ -56,7 +57,25 @@ If the output lists modified or untracked files in `src/` or `test/` while a syn
 
 ---
 
-### 3. Bug & Defect Triage
+### 3. Codebase Design & Seam Audit
+Evaluate whether the codebase satisfies deep module and seam principles:
+
+1. **Audit Module Depth**:
+   - Inspect newly created or modified modules in `src/`.
+   - Check if any module is **shallow** (its interface is nearly as complex as its implementation, simply passing data through to another component).
+   - Apply the **Deletion Test**: If the module were deleted, would complexity reappear across $N$ callers, or would it simply remove an unnecessary pass-through layer?
+   - Suggest deepening shallow clusters into cohesive deep modules.
+2. **Audit Seams & Adapters**:
+   - Check that ports and interfaces follow seam discipline: *"One adapter means a hypothetical seam; two adapters means a real one."*
+   - Flag speculative interfaces that only ever have a single production adapter and no distinct test adapter.
+3. **Audit Test Surfaces**:
+   - Ensure tests test *at* the module's public interface, not *past* the interface.
+   - Flag brittle tests that assert on private internal state, test internal helper functions directly, or mock internal implementation seams.
+   - Confirm that tests verify observable outcomes that survive internal refactorings.
+
+---
+
+### 4. Bug & Defect Triage
 When a user reports a bug, defect, or unexpected behavior:
 
 1. **Locate the Requirement & Check Open Issues**:
@@ -66,6 +85,7 @@ When a user reports a bug, defect, or unexpected behavior:
 2. **Inspect the Existing Spec**:
    - **Case A: The spec accurately describes the intended behavior.**
      - The implementation in `src/` is defective or a test in `test/` is missing/flawed.
+     - Check if the defect stems from a violation of codebase design principles (e.g. side effects mutating shared state, leaked internal seams, or hardcoded dependencies).
      - Fix the code and ensure tests tagged with `@spec <ID>` (referencing any confirmed linked issue where appropriate, e.g., `// @spec <ID> (Issue #42)`) fail before the fix and pass after.
      - No spec changes needed.
    - **Case B: The spec specifies the wrong behavior or omitted an edge case.**
@@ -81,7 +101,7 @@ When a user reports a bug, defect, or unexpected behavior:
 
 ---
 
-### 4. Regression & Verification Run
+### 5. Regression & Verification Run
 Run the full test suite as defined in `spec/architecture.md`:
 ```bash
 # E.g. pytest, npm test, etc.

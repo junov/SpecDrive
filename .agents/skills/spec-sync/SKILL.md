@@ -15,6 +15,7 @@ The `spec-sync` skill is the core execution engine of the spec-as-source process
 
 * **Detailed Protocol**: [sync-protocol.md](references/sync-protocol.md)
 * **Spec Format Reference**: [spec-format.md](../spec-author/references/spec-format.md)
+* **Codebase Design Reference**: [codebase-design.md](../spec-author/references/codebase-design.md)
 * **Helper Script**: `scripts/specdrive.py`, run from repository root as:
   `python scripts/specdrive.py <command>`
 
@@ -36,9 +37,12 @@ python scripts/specdrive.py status
 ### 2. Plan the Incremental Updates & Check Associated Issues
 Formulate a concise step-by-step plan:
 1. **Tests to add/update/delete** in `test/` (keyed by requirement ID).
-2. **Components/modules to touch** in `src/`.
-3. Check `spec/architecture.md` for technology stack, coding conventions, and test commands.
-4. **Associated Issue Check**:
+2. **Modules to touch** in `src/`.
+3. Check `spec/architecture.md` for technology stack, coding conventions, test commands, and module seams.
+4. **Dependency Categorization & Seam Discipline**:
+   - Classify dependencies affected by the change into the 4 categories (In-process, Local-substitutable, Remote-owned ports/adapters, True external).
+   - Enforce seam discipline: *"One adapter means a hypothetical seam; two adapters means a real one."* Do not add speculative interfaces or ports unless at least two adapters exist.
+5. **Associated Issue Check**:
    - Check if the current work has an associated issue (e.g., referenced in `spec/` requirement `Notes:`, or specified by the user).
    - If the current work does **not** have an associated issue:
      - **Do not ask again if already decided**: If the user already instructed the `spec-author` skill to proceed with the current work without an associated issue, **do not ask the user again**.
@@ -63,14 +67,22 @@ Evaluate the scope and complexity of the required changes:
 
 ### 3. Generate & Update Tests First (`test/`)
 For each changed requirement:
-- **`ADDED`**: Write new unit/integration tests directly derived from the requirement's `Acceptance:` criteria. Tag each test function with `# @spec <ID>` (or language-appropriate comment), and include any linked issue references from the spec where appropriate (e.g., `// @spec <ID> (Issue #42)`).
+- **`ADDED`**: Write new tests directly derived from the requirement's `Acceptance:` criteria. Tag each test function with `# @spec <ID>` (or language-appropriate comment), and include any linked issue references from the spec where appropriate (e.g., `// @spec <ID> (Issue #42)`).
 - **`MODIFIED`**: Update existing tests tagged with `@spec <ID>` to match the revised acceptance criteria, preserving or adding any linked issue references.
 - **`REMOVED`**: Remove or retire tests associated with the removed ID.
+- **The Interface is the Test Surface**: Callers and tests cross the exact same seam. Test observable outcomes through the module interface. Never reach past the interface to test internal private state or mock internal functions.
+- **Replace, Don't Layer**: When deepening shallow modules, delete obsolete unit tests on retired shallow pass-through components. Write new behavioral tests at the deepened interface.
 - When appropriate, add `TODO` comments referencing open follow-up issues in `test/` (e.g., `// TODO(#45): ...`).
 
 ### 4. Implement Code Changes (`src/`) & Propose Follow-Up Issues
 - Update only the source files necessary to satisfy the new or modified requirements.
 - Never write extra or speculative code beyond what is specified in `spec/`.
+- **Implement Deep Modules**: Build substantial behavior behind a compact interface placed at a clean seam. Hide complex internal transitions and error recovery inside the module.
+- **Design for Testability**:
+  1. *Accept dependencies, don't create them*: inject collaborators at seams/constructors.
+  2. *Return results, don't produce side effects*: compute and return values rather than mutating ambient state.
+  3. *Small surface area*: keep interfaces focused and minimal.
+- Keep internal seams private to the module implementation; never expose internal seams through the public module interface.
 - Tag primary implementing functions, classes, or endpoints with `@spec <ID>` (and any linked issue reference where appropriate).
 - **Propose Creating Follow-Up Issues (Confirmation Required)**:
    - If synthesizing or testing the changes uncovers problems, technical debt, or possible improvements that should be addressed in follow-up work, **propose creating a new issue** (for example on GitHub via `gh issue create`).
@@ -81,7 +93,10 @@ For each changed requirement:
 ### 5. Run Tests
 Execute the project's test command as defined in `spec/architecture.md` (e.g. `pytest`, `npm test`, `cargo test`, `go test`).
 - Ensure all tests pass with zero regressions.
-- If tests fail, fix the implementation or test. If the spec is contradictory, consult the user.
+- If tests fail, diagnose whether:
+  - The implementation has a bug $\rightarrow$ fix `src/`.
+  - The test misunderstood the spec acceptance criteria $\rightarrow$ fix `test/`.
+  - The spec itself is ambiguous or contradictory $\rightarrow$ consult the user.
 
 ### 6. Verify Traceability & Issue `TODO` Hygiene
 Run:

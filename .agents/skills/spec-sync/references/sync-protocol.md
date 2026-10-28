@@ -2,6 +2,7 @@
 
 This document defines the strict execution protocol for the `spec-sync` agent skill.
 When the user edits the Markdown specification in `spec/` and asks to sync or build, follow these stages sequentially.
+For architectural design principles and vocabulary, see [codebase-design.md](../../spec-author/references/codebase-design.md).
 
 ## The Sync Lifecycle
 
@@ -13,14 +14,14 @@ flowchart TD
     A1 -- "Approved" --> B["1. Compute Delta (specdrive.py delta)"]
     B --> C{"Check Problems?"}
     C -- "Duplicates / Missing IDs" --> D["Fix spec errors with user"]
-    C -- "Clean Delta" --> E["2. Impact Analysis & Plan"]
+    C -- "Clean Delta" --> E["2. Impact Analysis, Dependency Classification & Plan"]
     E --> E1{"Gate B: Complex or Architectural?"}
     E1 -- "Yes (Complex / Arch)" --> E2["Draft Design Document"]
     E2 --> E3{"User Approves Design?"}
     E3 -- "Revisions Needed" --> E2
-    E3 -- "Approved" --> F["3. Update / Create Tests (test/)"]
+    E3 -- "Approved" --> F["3. Update / Create Tests (test/ at seams)"]
     E1 -- "No (Simple / Localized)" --> F
-    F --> G["4. Update / Create Implementation (src/)"]
+    F --> G["4. Update / Create Deep Modules (src/)"]
     G --> H["5. Run Project Test Suite"]
     H -- "Tests Fail" --> I["Fix src/ or test/"]
     I --> H
@@ -74,7 +75,18 @@ Before proceeding to implementation:
   - **Proceeding without an associated issue is always an option**: always present this choice.
   - **Mandatory Confirmation Gate**: Never create an issue without explicit user confirmation.
 
-### 2c. Design Document & Approval Gate (For Complex / Architectural Syncs)
+### 2c. Dependency Classification & Seam Discipline
+Before touching code:
+1. **Classify Dependencies**: Map all affected dependencies into the 4 categories:
+   - *In-process*: Pure computation/in-memory state. No I/O. Always merge and test directly.
+   - *Local-substitutable*: Stand-in exists (e.g., SQLite, PGLite, in-memory fs). Test with stand-in; internal seam.
+   - *Remote but owned*: Microservices, internal APIs across network. Define port at seam; production adapter + in-memory test adapter.
+   - *True external*: 3rd-party services (Stripe, Twilio). Injected port; mock adapter.
+2. **Enforce Seam Discipline**:
+   - *"One adapter means a hypothetical seam; two adapters means a real one."*
+   - Never introduce an abstract port or interface unless at least two concrete adapters exist (e.g., production + in-memory test fake).
+
+### 2d. Design Document & Approval Gate (For Complex / Architectural Syncs)
 Assess whether the synchronization requires complex or architectural changes:
 1. **Identify Architectural or Complex Changes**:
    - The sync alters `spec/architecture.md`.
@@ -87,7 +99,7 @@ Assess whether the synchronization requires complex or architectural changes:
      - Architecture overview and component interaction flow.
      - New or modified interfaces, data contracts, and schema definitions.
      - Concrete file modification breakdown for `src/` and `test/`.
-     - Trade-offs, risks, and alternatives evaluated.
+     - Trade-offs, risks, and alternatives evaluated (using the "Design It Twice" perspective).
    - **Mandatory Approval Gate**: **STOP and present the design document to the user. You MUST obtain explicit user approval on the design document before proceeding to Step 3 or generating any code/tests.**
 3. **Action for Simple Code Changes**:
    - If the change is localized, does not affect architecture, and does not require system design changes (e.g., minor bug fix, UI style tweak, adding a simple isolated method or field), the design approval step is bypassed. Inform the user that design approval is bypassed and proceed directly to Step 3.
@@ -103,15 +115,30 @@ Before touching production code in `src/`:
      def test_account_lockout_after_five_failed_attempts():
          ...
      ```
-2. For `REMOVED` requirements:
+2. **The Interface is the Test Surface**:
+   - Tests cross the exact same seam callers do.
+   - Tests assert on observable outcomes (return values, emitted events, status codes), not internal state.
+   - Tests must survive internal implementation refactoring. If a test breaks when internal details change, it was testing past the interface.
+3. **Replace, Don't Layer**:
+   - When deepening a module or retiring shallow components, delete obsolete unit tests on the retired shallow components.
+   - Write clean behavioral tests against the deepened module's interface.
+4. For `REMOVED` requirements:
    - Delete or archive obsolete tests referencing that ID.
 
 ### 4. Implementation Synthesis
 Update `src/`:
 1. Implement the minimal necessary logic to satisfy the new/modified tests.
-2. Comply strictly with `spec/architecture.md` (directory structure, language idioms, architectural patterns).
-3. Annotate major implementing functions, classes, or modules with `@spec <ID>`.
-4. If implementation uncovers problems or possible improvements that should be addressed in follow-up work, propose creating new issue(s) and **always ask the user for confirmation** before creating them. When appropriate, add `TODO` comments referencing open issues to `spec/`, `src/`, and `test/`.
+2. **Implement Deep Modules**:
+   - Place substantial capability behind a compact interface at a clean seam.
+   - Minimize public methods, simplify parameter signatures, and encapsulate internal transitions.
+   - Avoid creating shallow 1-to-1 pass-through layers (e.g. controller -> service -> repository wrappers).
+3. **Design for Testability**:
+   - *Accept dependencies, don't create them*: Pass dependencies into constructors/methods.
+   - *Return results, don't produce side effects*: Favor pure functions and explicit result objects.
+   - Keep internal seams private to the module implementation; do not expose internal seams through the public interface.
+4. Comply strictly with `spec/architecture.md` (directory structure, language idioms, architectural patterns).
+5. Annotate major implementing functions, classes, or modules with `@spec <ID>`.
+6. If implementation uncovers problems or possible improvements that should be addressed in follow-up work, propose creating new issue(s) and **always ask the user for confirmation** before creating them. When appropriate, add `TODO` comments referencing open issues to `spec/`, `src/`, and `test/`.
 
 ### 5. Automated Validation
 1. Execute the project's native test runner (as specified in `spec/architecture.md`, e.g. `pytest`, `npm test`, `cargo test`, `go test`).

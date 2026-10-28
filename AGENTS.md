@@ -45,6 +45,14 @@ This project operates on the **Spec-as-Source** paradigm. In this repository, **
    - `python scripts/specdrive.py trace`: View the traceability matrix.
    - `python scripts/specdrive.py check`: Run automated validation checks.
    - `python scripts/specdrive.py accept -m "<msg>"`: Commit synchronized changes (requires explicit user approval).
+6. **Deep Module Architecture & Seam Discipline**:
+   Code generated in `src/` and tests in `test/` must embody **deep modules**: substantial behavior behind small interfaces placed at clean seams.
+   - **Vocabulary**: *Module*, *Interface*, *Implementation*, *Depth*, *Seam*, *Adapter*, *Leverage*, *Locality*. (Avoid vague substitutes like "component," "service," or "boundary.")
+   - **Design for Testability**: Accept dependencies rather than instantiating them inside; return computed results rather than mutating external state; keep interfaces small.
+   - **The Interface is the Test Surface**: Tests verify observable behavior across the module seam; never couple tests to internal seams or private implementation details. Follow "replace, don't layer" testing.
+   - **Seam Discipline**: "One adapter means a hypothetical seam; two adapters means a real one." Avoid speculative abstractions. Categorize dependencies (in-process, local-substitutable, remote-owned ports/adapters, true external).
+
+---
 
 ## 3. Skill Dispatch Guide
 
@@ -52,4 +60,4 @@ This project operates on the **Spec-as-Source** paradigm. In this repository, **
 - **`spec-author`**: Use when drafting, editing, or refining Markdown requirements, or converting ideas into specs. Produces spec edits only, presents them for user review, and stops; never touches `src/` or `test/` and never automatically triggers `spec-sync`.
 - **`spec-sync`**: Use when the user has reviewed and approved spec edits and wants the changes transformed into code and tests. Enforces design document approval for complex/architectural changes, presents synthesized code for user review, and requires explicit user approval before running `accept`.
 - **`spec-verify`**: Use when auditing test coverage, checking for code drift, or triaging whether a bug is a spec bug vs an implementation bug.
-- **`spec-submit`**: The final step of the SpecDrive process. Use when pushing committed changes to the upstream repository, closing completely fixed issues, configuring code reviews / pull requests with issue-closing annotations (e.g. 'Closes #123'), and commenting 'Fixed in release <version>' on fixed issues when release tags are pushed or merged.
+- **`spec-submit`**: The final step of the SpecDrive process. Use when pushing committed changes to the upstream remote, closing completely fixed issues, configuring code reviews / pull requests with issue-closing annotations (e.g. 'Closes #123'), and commenting 'Fixed in release <version>' on fixed issues when release tags are pushed or merged.

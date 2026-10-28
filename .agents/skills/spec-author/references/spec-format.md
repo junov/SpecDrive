@@ -3,6 +3,7 @@
 Every SpecDrive skill depends on this format. The helper script
 (`scripts/specdrive.py`) parses it, so the **structural rules** below are
 mandatory. The **style rules** are strong guidance.
+For architectural principles and module design vocabulary, see [codebase-design.md](codebase-design.md).
 
 ## Project layout
 
@@ -13,8 +14,8 @@ mandatory. The **style rules** are strong guidance.
 │   ├── architecture.md      # stack, layout, conventions, commands, NFRs (context, binding)
 │   └── features/
 │       └── <capability>.md  # requirements live here, one file per capability
-├── src/                     # derived: generated/maintained by the agent
-├── test/                    # derived: generated/maintained by the agent
+├── src/                     # derived: generated/maintained by the agent (deep modules)
+├── test/                    # derived: generated/maintained by the agent (tests at seams)
 └── AGENTS.md                # always-on rule telling agents this is a spec-as-source repo
 ```
 
@@ -46,7 +47,7 @@ Extra folders under `spec/` (e.g. `spec/api/`, `spec/data/`) are fine. Every `*.
 ### Context rules
 
 * Context sections apply globally. `architecture.md` is **binding**: language, frameworks, folder
-  layout of `src/` and `test/`, coding conventions, and the build/test/lint commands.
+  layout of `src/` and `test/`, module boundaries and seams, dependency categorization, coding conventions, and the build/test/lint commands.
 * A context section changes whenever any line in it changes. Its key is the heading path, so
   renaming a heading looks like REMOVED + ADDED.
 * Context sections may contain IDs for cross-cutting requirements (`NFR-001: p95 latency < 200 ms`).
@@ -116,8 +117,12 @@ bullet becomes at least one test, and nothing untestable belongs in them.
 * One behavior per requirement. If a requirement needs "and also", split it.
 * Use concrete values: limits, formats, messages, status codes, and time windows.
 * Cover the unhappy paths: invalid input, missing data, permissions, concurrency, limits.
-* Say WHAT is observable, not HOW it's built. The *how* goes in `architecture.md`, or in an
-  explicit `Implementation constraint:` line inside the requirement, which is binding.
+* **Specify observable behavior at the seam, not internal mechanics**: Say WHAT is observable across
+  the module's external interface, not HOW it is partitioned internally. The *how* (technology choices,
+  seams, dependency categories) goes in `architecture.md`, or in an explicit `Implementation constraint:`
+  line inside the requirement, which is binding.
+* Keep modules deep: Requirements should specify substantial behavior behind a compact interface,
+  avoiding shallow 1-to-1 pass-through layers.
 * Items under `## Open questions` or `## Out of scope` are **never implemented**.
 * Keep files focused. Split a feature file once it holds more than about 25 requirements.
 
@@ -126,7 +131,7 @@ bullet becomes at least one test, and nothing untestable belongs in them.
 * Every test that verifies a requirement carries `@spec <ID>` in a comment, docstring, or test
   name, for example `// @spec AUTH-002` or `def test_lockout():  # @spec AUTH-002`.
   Several IDs: `@spec AUTH-001, AUTH-002`.
-* The main implementing unit (function, class, handler, or component) carries a
+* The main implementing unit (function, class, handler, or module) carries a
   `@spec <ID>` comment. Shared infrastructure doesn't need tags.
 * When a requirement or change is linked to an issue (e.g., `#42`), reference the issue in the
   requirement's `Notes:` section in `spec/` and alongside the `@spec <ID>` tag or docstring in
@@ -138,5 +143,3 @@ bullet becomes at least one test, and nothing untestable belongs in them.
   in `TODO` comments).
 * `specdrive.py check` fails on untested requirements and on tags whose ID isn't in the spec
   (orphans).
-
-
