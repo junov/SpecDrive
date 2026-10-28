@@ -7,11 +7,19 @@ When the user edits the Markdown specification in `spec/` and asks to sync or bu
 
 ```mermaid
 flowchart TD
-    A["User modifies spec/*.md"] --> B["1. Compute Delta (specdrive.py delta)"]
+    A["User modifies spec/*.md"] --> A1{"Gate A: User Reviews & Approves Spec?"}
+    A1 -- "Needs Revisions" --> D1["Refine spec in spec-author"]
+    D1 --> A1
+    A1 -- "Approved" --> B["1. Compute Delta (specdrive.py delta)"]
     B --> C{"Check Problems?"}
     C -- "Duplicates / Missing IDs" --> D["Fix spec errors with user"]
     C -- "Clean Delta" --> E["2. Impact Analysis & Plan"]
-    E --> F["3. Update / Create Tests (test/)"]
+    E --> E1{"Gate B: Complex or Architectural?"}
+    E1 -- "Yes (Complex / Arch)" --> E2["Draft Design Document"]
+    E2 --> E3{"User Approves Design?"}
+    E3 -- "Revisions Needed" --> E2
+    E3 -- "Approved" --> F["3. Update / Create Tests (test/)"]
+    E1 -- "No (Simple / Localized)" --> F
     F --> G["4. Update / Create Implementation (src/)"]
     G --> H["5. Run Project Test Suite"]
     H -- "Tests Fail" --> I["Fix src/ or test/"]
@@ -19,8 +27,8 @@ flowchart TD
     H -- "Tests Pass" --> J["6. Verify Traceability (specdrive.py check)"]
     J -- "Missing Tags / Untested" --> K["Tag missing @spec IDs"]
     K --> J
-    J -- "Check Passed" --> L{"7. User Review & Approval"}
-    L -- "Approved" --> M["8. Accept & Baseline (specdrive.py accept)"]
+    J -- "Check Passed" --> L{"Gate C: User Reviews Code & Diffs"}
+    L -- "Gate D: Explicit User Approval to Accept" --> M["8. Accept & Baseline (specdrive.py accept)"]
     M --> N["Git Commit with Spec-Sync trailers"]
     N --> Q["9. Propose spec-submit to User"]
     Q -- "User Confirms" --> R["Push Upstream, Close Issues & Update Release Comments"]
@@ -33,7 +41,7 @@ flowchart TD
 
 ## Step-by-Step Execution Guide
 
-### 1. Delta Detection
+### 1. Delta Detection & Spec Review Verification
 Run:
 ```bash
 python scripts/specdrive.py delta
@@ -46,6 +54,7 @@ Inspect the output:
   - `REMOVED <ID>`: Requirement retired. Remove or update corresponding tests and code. Clean up dead code.
   - `MOVED <ID>`: Requirement relocated to a different feature file; content unchanged. Update references if needed.
   - `[context]`: Structural or architectural changes (e.g. `architecture.md`). Assess global impacts.
+- **Spec Review Gate**: Verify that the user has reviewed and approved the spec changes before proceeding with synchronization.
 
 ### 2. Code Drift Check
 Run:
@@ -64,6 +73,24 @@ Before proceeding to implementation:
   - Otherwise, propose creating one or more new issues for the current work.
   - **Proceeding without an associated issue is always an option**: always present this choice.
   - **Mandatory Confirmation Gate**: Never create an issue without explicit user confirmation.
+
+### 2c. Design Document & Approval Gate (For Complex / Architectural Syncs)
+Assess whether the synchronization requires complex or architectural changes:
+1. **Identify Architectural or Complex Changes**:
+   - The sync alters `spec/architecture.md`.
+   - The sync introduces new subsystems, architectural layers, or modules.
+   - The sync changes data persistence formats, storage architectures, or public network protocols.
+   - The sync involves a broad, multi-file refactoring across interdependent modules.
+2. **Action for Complex / Architectural Changes**:
+   - The agent **MUST write a comprehensive Design Document** (as an artifact or structured markdown document).
+   - The design document must include:
+     - Architecture overview and component interaction flow.
+     - New or modified interfaces, data contracts, and schema definitions.
+     - Concrete file modification breakdown for `src/` and `test/`.
+     - Trade-offs, risks, and alternatives evaluated.
+   - **Mandatory Approval Gate**: **STOP and present the design document to the user. You MUST obtain explicit user approval on the design document before proceeding to Step 3 or generating any code/tests.**
+3. **Action for Simple Code Changes**:
+   - If the change is localized, does not affect architecture, and does not require system design changes (e.g., minor bug fix, UI style tweak, adding a simple isolated method or field), the design approval step is bypassed. Inform the user that design approval is bypassed and proceed directly to Step 3.
 
 ### 3. Test-First Synthesis
 Before touching production code in `src/`:
@@ -109,21 +136,18 @@ Additionally, validate `TODO` comment hygiene across `spec/`, `src/`, and `test/
 
 If errors are found, fix them before proceeding.
 
-### 7. User Review & Approval
-Present a concise summary of the synthesized code, created/modified tests, and verification results to the user.
-In the case of UI changes, display before and after screenshots that illustrate the changes.
+### 7. User Review & Approval Gate
+Present a concise summary of the synthesized code, created/modified tests, diffs, and verification results to the user.
 
-> **IMPORTANT**:
-> Never show generated images or mockups instead of actual screenshots. If you don't know how to generate the correct real screenshots then don't show any.
-
-Ask the User to provide feedback, approve the changes, or cancel the sync:
+**Mandatory Code Review Gate**: Ask the User to provide feedback, approve the changes, or cancel the sync:
 - **Approved**: Proceed to Step 8 to advance the baseline.
 - **Feedback (Spec-Level)**: If the user requests alterations that change requirements, acceptance criteria, or architectural constraints, hand off to `spec-author` to draft the spec changes first.
 - **Feedback (Implementation-Level)**: If the user requests code improvements, refactoring, or bug fixes consistent with the existing spec, return to Step 2 to revise code and tests.
 - **Cancel**: Revert uncommitted working tree modifications in `src/` and `test/` (e.g., `git restore src/ test/` and remove untracked generated files) to return cleanly to the previous baseline state.
 
-### 8. Commit & Advance Baseline
-Once all tests pass, traceability passes, and the user has approved the sync:
+### 8. Commit & Advance Baseline (Explicit User Approval Required)
+**`specdrive accept` MUST NEVER be run without explicit user approval.**
+Only once all tests pass, traceability passes, and the user has explicitly confirmed approval:
 Run:
 ```bash
 python scripts/specdrive.py accept -m "<Brief description of spec changes>"
@@ -148,4 +172,3 @@ After the baseline commit is recorded, **propose proceeding with the `spec-submi
   - If pushing directly to a branch without code reviews, close all completely fixed associated issues immediately with an informative closing comment.
   - When pushing or merging release tags, comment `"Fixed in release <version>"` on all issues fixed since the previous release tag.
 - Only invoke or proceed with `spec-submit` once the user confirms.
-

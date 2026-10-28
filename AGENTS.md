@@ -19,26 +19,37 @@ This project operates on the **Spec-as-Source** paradigm. In this repository, **
 ## 2. Core Operational Rules for Agents
 
 1. **Never edit `src/` to change behavior without updating `spec/` first**:
-   If the user asks for a new feature, a behavior change, or an altered business rule, guide the user to update `spec/` (using the `spec-author` skill) or draft the spec changes for them. Then synchronize the changes into `src/` and `test/` (using the `spec-sync` skill).
-2. **Traceability via `@spec <ID>`**:
+   If the user asks for a new feature, a behavior change, or an altered business rule, guide the user to update `spec/` (using the `spec-author` skill) or draft the spec changes for them.
+2. **Mandatory Human-in-the-Loop Gates (Never Progress Automatically Across Stages)**:
+   The SpecDrive process enforces strict human-in-the-loop review and approval gates between lifecycle steps:
+   - **Gate A — Spec Review Gate (Before Sync)**:
+     When spec changes are drafted or updated (via `spec-author` or during bug triage), the agent **MUST STOP** and present the spec diff and assumptions to the user. The agent **must never automatically progress to `spec-sync` or edit code**. The user must review and approve the spec changes before synchronization begins.
+   - **Gate B — Design Document & Approval Gate (For Complex or Architectural Sync Steps)**:
+     When a synchronization step requires complex business logic or architectural changes (e.g., changes affecting `spec/architecture.md`, system design, new subsystems/modules, major data schema or interface shifts), the agent **MUST produce a design document** (such as an artifact or markdown proposal) explaining the architecture, components, data flow, and file impacts, and **obtain explicit user approval before writing code or tests**.
+     For simple code changes that do not affect architecture and do not require system design changes, the agent may bypass design approval and proceed directly to test and code implementation.
+   - **Gate C — Code Review & Approval Gate (Before Accept)**:
+     After tests and code are synthesized, tests pass, and `specdrive check` verifies traceability, the agent **MUST STOP** and present a clear summary of the synthesized code, created/modified tests, and diffs. The user must be given the opportunity to review and approve the code changes.
+   - **Gate D — Accept Never Run Without Explicit User Approval**:
+     The `accept` step (`specdrive accept` / `specnovel accept`) **MUST NEVER be run without explicit user approval**.
+3. **Traceability via `@spec <ID>`**:
    Every requirement in `spec/` has a unique, permanent identifier (`PREFIX-NNN`, e.g. `AUTH-001`).
    - Every test verifying a requirement MUST contain `@spec <ID>` in its name, docstring, or comment.
    - Every primary implementing component in `src/` should include `@spec <ID>`.
-3. **No Unspecified Code**:
+4. **No Unspecified Code**:
    Do not add features, endpoints, speculative configurations, or behavior not defined in `spec/`.
-4. **Git-Native Synchronization**:
+5. **Git-Native Synchronization**:
    Synchronization baseline commits are tagged with `Spec-Sync:` Git trailers.
    Use the Python helper script `scripts/specdrive.py` (or `third_party/specdrive/scripts/specdrive.py` in host projects) to calculate deltas, trace requirements, verify coverage, and accept syncs:
    - `python scripts/specdrive.py status`: Check pending changes and code drift.
    - `python scripts/specdrive.py delta`: Inspect requirement-level changes vs baseline.
    - `python scripts/specdrive.py trace`: View the traceability matrix.
    - `python scripts/specdrive.py check`: Run automated validation checks.
-   - `python scripts/specdrive.py accept -m "<msg>"`: Commit synchronized changes.
+   - `python scripts/specdrive.py accept -m "<msg>"`: Commit synchronized changes (requires explicit user approval).
 
 ## 3. Skill Dispatch Guide
 
 - **`spec-init`**: Use when bootstrapping a project into SpecDrive—either creating a brand-new software product from scratch (conducting a discovery interview, scoping the walking skeleton, and synthesizing initial code/tests) or adopting SpecDrive in an existing codebase.
-- **`spec-author`**: Use when drafting, editing, or refining Markdown requirements, or converting ideas into specs. (Produces spec edits only; never touches `src/` or `test/`).
-- **`spec-sync`**: Use when the user has edited `spec/` and wants the changes transformed into code and tests.
+- **`spec-author`**: Use when drafting, editing, or refining Markdown requirements, or converting ideas into specs. Produces spec edits only, presents them for user review, and stops; never touches `src/` or `test/` and never automatically triggers `spec-sync`.
+- **`spec-sync`**: Use when the user has reviewed and approved spec edits and wants the changes transformed into code and tests. Enforces design document approval for complex/architectural changes, presents synthesized code for user review, and requires explicit user approval before running `accept`.
 - **`spec-verify`**: Use when auditing test coverage, checking for code drift, or triaging whether a bug is a spec bug vs an implementation bug.
 - **`spec-submit`**: The final step of the SpecDrive process. Use when pushing committed changes to the upstream repository, closing completely fixed issues, configuring code reviews / pull requests with issue-closing annotations (e.g. 'Closes #123'), and commenting 'Fixed in release <version>' on fixed issues when release tags are pushed or merged.

@@ -7,8 +7,8 @@ description: >-
   syncing. Launches a parallel sub-agent to match requests against open project issues, confirms
   issue links with the user, proposes creating follow-up issues (with user confirmation),
   references linked issues and open-issue TODOs in the spec, and posts permission-gated
-  investigation findings to issues. Produces spec text only and never edits src/ or test/; hand
-  off to spec-sync for that.
+  investigation findings to issues. Produces spec text only and never edits src/ or test/; stops
+  to give the user the opportunity to review spec changes before hand off to spec-sync.
 ---
 
 # Spec Author
@@ -21,6 +21,17 @@ propose, they approve.
 * Review checklist: [quality-checklist.md](references/quality-checklist.md)
 * Helper script: `scripts/specdrive.py`, run from the repo root as
   `python scripts/specdrive.py <command>` (or `python third_party/specdrive/scripts/specdrive.py <command>` in host projects).
+
+## Mandatory Spec Review Gate
+
+**Never progress automatically to coding or synchronization.**
+When you finish drafting, editing, or triaging spec requirements:
+1. Show the user the drafted text or diff.
+2. Clearly explain assumptions, scope, and impact.
+3. **STOP.** Do not call `spec-sync` or edit `src/` or `test/`.
+4. Wait for the user to review, provide feedback, or explicitly approve proceeding to synchronization.
+
+---
 
 ## Issue Discovery, Linking, Follow-Up Issues & Investigation Comments
 
@@ -61,9 +72,7 @@ Whenever `spec-author` is invoked to draft, extend, or triage a request:
 4. Run the quality checklist on what you wrote and fix your own BLOCKERs and WARNINGs.
 5. If follow-up problems or improvements were identified, propose creating new issue(s) and ask the user for confirmation before creating them; once created, add `TODO` comments referencing the open follow-up issue(s) in `spec/` where appropriate.
 6. If important findings were uncovered during investigation of a linked issue, ask the user for permission to post a summary comment to the issue.
-7. Show the user the drafted text, or the diff if you edited the file, and point out the
-   assumptions you made. **Stop there.** Implementation happens only when the user asks to
-   sync (spec-sync skill).
+7. **Mandatory Spec Review Gate: Show the user the drafted text, or the diff if you edited the file, and point out the assumptions you made. Stop there.** Implementation happens only when the user explicitly reviews and commands a sync (spec-sync skill).
 
 ### B. Review the user's own edits (pre-sync lint)
 1. Run `specdrive.py delta` to see exactly what changed since the last sync.
@@ -74,12 +83,13 @@ Whenever `spec-author` is invoked to draft, extend, or triage a request:
 4. If the review uncovers broader problems or follow-up improvements, propose creating new issue(s) (asking the user for confirmation first) and adding corresponding `TODO` comments in `spec/`. Also flag any `TODO` comments in `spec/` that reference already-fixed or closed issues so they are removed or converted to normal non-`TODO` references.
 5. You **may** apply purely mechanical fixes without asking, but you must report them: assigning
    missing IDs via `next-id`, fixing heading syntax, or moving a requirement under `## Requirements`.
+6. Present the lint and delta summary to the user and stop to allow them to review.
 
 ### C. Turn a bug report or code change request into spec text
 1. Unless the user explicitly mentioned an issue in their prompt, launch the parallel issue-search sub-agent to check if the bug report or change request matches any open project issues, while finding the governing requirement(s) (`specdrive.py trace --id <ID>`, or search `spec/`).
 2. If candidate open issues are found, ask the user to confirm which issue(s) should be linked (if any).
 3. Decide which case applies:
-   * **The spec is wrong or incomplete:** propose a MODIFIED or ADDED requirement (referencing confirmed linked issues in `spec/` where appropriate) and show the diff.
+   * **The spec is wrong or incomplete:** propose a MODIFIED or ADDED requirement (referencing confirmed linked issues in `spec/` where appropriate) and show the diff. **Stop there and wait for user review/approval.**
    * **The code violates a correct spec:** no spec edit is needed. Tell the user it's an
      implementation defect and use the spec-verify skill (bug triage) to fix it.
 4. If follow-up problems or improvements are discovered during triage, propose creating new issue(s) and ask the user for confirmation before creating them.
@@ -89,11 +99,10 @@ Whenever `spec-author` is invoked to draft, extend, or triage a request:
 
 ## Rules
 * Never edit `src/` or `test/` in this skill.
+* **Mandatory Spec Review Gate**: Always stop after authoring or updating specs. Never automatically progress into `spec-sync` or code synthesis without explicit user review and approval.
 * Never renumber, reuse, or delete IDs to "tidy up". Removed IDs are retired forever.
 * Keep requirement text implementation-agnostic unless the user explicitly wants a binding
   `Implementation constraint:`.
 * Prefer small, reviewable spec edits. Suggest splitting a large change into several syncs.
 * Always confirm with the user before linking discovered issues (unless explicitly mentioned by the user), **always** ask for confirmation before creating a new issue, and **always** ask for explicit permission before posting any comments to an issue.
 * It is okay to reference fixed or closed issues in normal comments or `Notes:`, but never in `TODO` comments; remove `TODO` markers once the referenced issue is fixed.
-
-
