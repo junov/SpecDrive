@@ -102,6 +102,7 @@ Whenever `spec-author` is invoked to draft, extend, or triage a request:
 ## Rules
 * Never edit `src/` or `test/` in this skill.
 * **Mandatory Spec Review Gate**: Always stop after authoring or updating specs. Never automatically progress into `spec-sync` or code synthesis without explicit user review and approval.
+* **Living Blueprint, Not Changelog**: Requirements specify current desired behavior only. Never author negative acceptance criteria or requirement statements prohibiting retired or former behavior (e.g. "no longer calls v1 API" or "does not do legacy X"). Negative criteria are permitted only when expressing intrinsic domain invariants (such as security rules or error conditions). Former behavior is documented by git history and spec deltas.
 * Never renumber, reuse, or delete IDs to "tidy up". Removed IDs are retired forever.
 * Keep requirement text implementation-agnostic unless the user explicitly wants a binding
   `Implementation constraint:`.

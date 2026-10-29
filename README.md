@@ -362,3 +362,5 @@ A portable Python (3.8+ standard library) CLI tool is provided at `scripts/specd
    If a bug appears in production or testing, resist the urge to edit `src/` directly without touching `spec/`. Update the acceptance criteria in `spec/` first, then trigger `spec-sync`. This guarantees your spec remains the authoritative single source of truth.
 7. **Concrete Acceptance Criteria**:
    Vague phrases like *"the response should be fast and user-friendly"* lead to agent hallucinations. Always write concrete criteria: *"response status is 200 within 250ms and includes payload `{ status: 'ok' }`"*.
+8. **Living Specifications, Not Changelogs**:
+   Never write requirement acceptance criteria prohibiting former or legacy behavior (e.g. *"does not render the legacy dialog"* or *"no longer calls v1 API"*). Specifications describe current desired behavior. When behavior changes, state the new behavior positively; Git history and `specdrive delta` record what was removed or replaced. Reserve negative statements strictly for intrinsic domain invariants (such as security rules or error conditions).

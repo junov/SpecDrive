@@ -121,6 +121,13 @@ bullet becomes at least one test, and nothing untestable belongs in them.
   the module's external interface, not HOW it is partitioned internally. The *how* (technology choices,
   seams, dependency categories) goes in `architecture.md`, or in an explicit `Implementation constraint:`
   line inside the requirement, which is binding.
+* **Living blueprint, not changelog (no historical negatives)**: Requirements and acceptance criteria
+  describe the current, desired state of the system—never past, retired, or transitional behavior. Never
+  write negative acceptance criteria prohibiting former behavior (e.g. "does not render legacy popup"
+  or "no longer calls v1 API"). State purely what the system *does*. Negative statements are valid
+  only for intrinsic domain/security invariants (e.g. "SHALL NOT store plaintext passwords", "SHALL NOT
+  debit account when balance is insufficient"). Git history (`git log`, `specdrive delta`) tracks what was
+  removed or replaced.
 * Keep modules deep: Requirements should specify substantial behavior behind a compact interface,
   avoiding shallow 1-to-1 pass-through layers.
 * Items under `## Open questions` or `## Out of scope` are **never implemented**.

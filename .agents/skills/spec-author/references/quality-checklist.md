@@ -14,6 +14,7 @@ findings as concrete, quotable suggestions. Never silently rewrite the user's in
 - [ ] No hidden implementation choices unless they're intentional (mark them as `Implementation constraint:`).
 - [ ] Doesn't contradict another requirement, `architecture.md`, or the glossary.
 - [ ] Uses glossary terms consistently (same name for the same concept everywhere).
+- [ ] **No historical negatives**: Specifies current desired behavior without referencing or prohibiting former/deprecated behavior (e.g. no "no longer does X" or "do not do legacy Y"). Negative statements are reserved strictly for intrinsic domain invariants (e.g. security constraints, error rules).
 - [ ] **Deep interface**: Defines high leverage behind a small interface (few methods/endpoints, simple parameters), avoiding shallow pass-through layers.
 - [ ] **Seam placement**: Focuses requirements on the module's observable external interface/seam; does not dictate internal implementation seams or leak private module structure.
 - [ ] **Testability**: Acceptance criteria specify inputs and observable return values/outcomes rather than hidden internal mutations.
@@ -31,5 +32,5 @@ findings as concrete, quotable suggestions. Never silently rewrite the user's in
 
 ## Severity labels for findings
 - **BLOCKER**: the sync can't produce correct code (ambiguity, contradiction, missing ID).
-- **WARNING**: likely to produce wrong or fragile behavior (missing error case, vague criterion, shallow pass-through).
+- **WARNING**: likely to produce wrong or fragile behavior (missing error case, vague criterion, shallow pass-through, historical negative criterion).
 - **NIT**: style or consistency.
